@@ -1,0 +1,58 @@
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build
+/build/
+/dist/
+*.log
+
+# WordPress
+wp-config.php
+
+# Claude Code
+CLAUDE.md
+
+# 3ai-review intermediates (ローカル作業用、git 管理しない)
+.tmp/
+
+# PHPUnit
+.phpunit.result.cache
+.phpunit.cache/
+
+# Playwright MCP (dev snapshots)
+.playwright-mcp/
+
+# Codex CLI
+.codex
+
+# Dev screenshots (root-level PNGs)
+/*.png
+/*.md.bak
+
+# Stray CLI arg files
+/-f
+/-t
+/-t.progress
+
+# Composer
+composer.json
+composer.lock
+
+# Package manager
+package.json
+package-lock.json
+
+# Snapshot/debug markdown
+general-snapshot-detail.md
+general-tab-snapshot.md

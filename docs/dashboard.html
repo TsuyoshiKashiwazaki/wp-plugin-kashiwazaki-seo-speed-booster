@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>計測ダッシュボード - Kashiwazaki SEO Speed Booster マニュアル</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Hamburger Button (Mobile) -->
+<button class="hamburger-btn" aria-label="メニューを開く" aria-expanded="false">&#9776;</button>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Speed Booster</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li class="section-label">機能</li>
+        <li><a href="prefetch.html">予測プリフェッチ</a></li>
+        <li><a href="speculation.html">Speculation Rules</a></li>
+        <li><a href="smart-ux.html">Smart UX スピナー</a></li>
+        <li><a href="image-optimization.html">画像最適化</a></li>
+        <li class="section-label">管理</li>
+        <li class="active"><a href="dashboard.html">計測ダッシュボード</a></li>
+        <li><a href="exclusions.html">除外 URL パターン</a></li>
+        <li class="section-label">サポート</li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<main class="content">
+
+    <h1>計測ダッシュボード</h1>
+    <p class="lead">実ユーザーの Core Web Vitals データを自動収集し、管理画面でグラフやCSVエクスポートで確認できます。</p>
+
+    <h3>このページの内容</h3>
+    <ul>
+        <li><a href="#overview">計測ダッシュボードの概要</a></li>
+        <li><a href="#dashboard-screen">ダッシュボード画面</a></li>
+        <li><a href="#collected-metrics">収集されるメトリクス</a></li>
+        <li><a href="#dashboard-features">ダッシュボードの機能</a></li>
+        <li><a href="#data-collection">データ収集の仕組み</a></li>
+        <li><a href="#url-normalization">URL パスの正規化</a></li>
+        <li><a href="#privacy">プライバシーと Cookie</a></li>
+        <li><a href="#security">セキュリティ</a></li>
+    </ul>
+
+    <!-- ============================
+         計測ダッシュボードの概要
+         ============================ -->
+    <h2 id="overview">計測ダッシュボードの概要</h2>
+
+    <p>計測ダッシュボードは、サイトを訪問する実ユーザーのブラウザから Core Web Vitals (LCP / INP / CLS / FCP / TTFB) のデータを収集し、WordPress管理画面で可視化する機能です。Google の web-vitals.js ライブラリ (v4.2.4) を使用してブラウザから直接メトリクスを取得し、REST API 経由でサーバーに送信します。</p>
+
+    <!-- ============================
+         ダッシュボード画面
+         ============================ -->
+    <h2 id="dashboard-screen">ダッシュボード画面</h2>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/06-dashboard-tab.png" alt="計測ダッシュボード" class="lightbox-trigger">
+        <figcaption>図: 計測ダッシュボード</figcaption>
+    </figure>
+
+    <!-- ============================
+         収集されるメトリクス
+         ============================ -->
+    <h2 id="collected-metrics">収集されるメトリクス</h2>
+
+    <p>本プラグインは独自の計測アルゴリズムを持ちません。Google が公開しているオープンソースライブラリ <a href="https://github.com/GoogleChromeLab/web-vitals" target="_blank" rel="noopener">web-vitals.js</a> (v4.2.4) を使用し、ブラウザのネイティブ API (<code>PerformanceObserver</code>) 経由で各メトリクスを取得しています。</p>
+
+    <table >
+        <thead>
+            <tr>
+                <th>メトリクス</th>
+                <th>正式名称</th>
+                <th>何を測っているか</th>
+                <th>ブラウザ API</th>
+                <th>単位</th>
+                <th>上限値</th>
+                <th>良好な値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>LCP</td>
+                <td>Largest Contentful Paint</td>
+                <td>ビューポート内で最も大きい画像・テキストブロックが描画完了するまでの時間</td>
+                <td><code>PerformanceObserver('largest-contentful-paint')</code></td>
+                <td>ms</td>
+                <td>60,000</td>
+                <td>&le; 2,500ms</td>
+            </tr>
+            <tr>
+                <td>FCP</td>
+                <td>First Contentful Paint</td>
+                <td>最初のテキストまたは画像が画面に描画されるまでの時間</td>
+                <td><code>PerformanceObserver('paint')</code> の <code>first-contentful-paint</code> エントリ</td>
+                <td>ms</td>
+                <td>60,000</td>
+                <td>&le; 1,800ms</td>
+            </tr>
+            <tr>
+                <td>INP</td>
+                <td>Interaction to Next Paint</td>
+                <td>ユーザー操作（クリック・タップ・キー入力）から次のフレームが描画されるまでの最大遅延</td>
+                <td><code>PerformanceObserver('event')</code> の <code>duration</code></td>
+                <td>ms</td>
+                <td>60,000</td>
+                <td>&le; 200ms</td>
+            </tr>
+            <tr>
+                <td>CLS</td>
+                <td>Cumulative Layout Shift</td>
+                <td>ページ表示中に発生したレイアウトシフト（要素の位置ずれ）のスコア累積値。セッションウィンドウ方式で計算</td>
+                <td><code>PerformanceObserver('layout-shift')</code></td>
+                <td>スコア</td>
+                <td>50</td>
+                <td>&le; 0.1</td>
+            </tr>
+            <tr>
+                <td>TTFB</td>
+                <td>Time to First Byte</td>
+                <td>ナビゲーション開始（リクエスト発行）からサーバーのレスポンス最初の 1 バイトを受信するまでの時間</td>
+                <td><code>PerformanceObserver('navigation')</code> の <code>responseStart</code></td>
+                <td>ms</td>
+                <td>60,000</td>
+                <td>&le; 800ms</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>上限値を超えるデータは異常値とみなされ、自動的に記録されません。通常の利用では上限に達することはありません。</p>
+
+    <div class="callout callout-note">
+        <p class="callout-title">ノート</p>
+        <p>これらのブラウザ API は Chromium ベースのブラウザ（Chrome / Edge / Opera 等）でサポートされています。Firefox や Safari では一部のメトリクス（INP・CLS 等）が取得できない場合があります。web-vitals.js は API が利用できないブラウザでは自動的にスキップするため、エラーにはなりません。</p>
+    </div>
+
+    <!-- ============================
+         ダッシュボードの機能
+         ============================ -->
+    <h2 id="dashboard-features">ダッシュボードの機能</h2>
+
+    <h3>期間フィルタ</h3>
+    <ul>
+        <li>7日間 / 30日間 / 90日間の3つの期間から選択可能</li>
+        <li>管理画面上のリンクで期間を切り替え（サーバーサイドでデータ取得・描画）</li>
+    </ul>
+
+    <h3>時系列グラフ</h3>
+    <ul>
+        <li>日別の平均値を折れ線グラフ（SVG）で表示</li>
+        <li>5つのメトリクス（LCP / INP / CLS / FCP / TTFB）それぞれの推移を確認可能</li>
+    </ul>
+
+    <h3>LCP 低速 URL TOP 20</h3>
+    <ul>
+        <li>LCP の平均値が高い URL パスをランキング表示</li>
+        <li>改善が必要なページの特定に役立ちます</li>
+    </ul>
+
+    <h3>CSV エクスポート</h3>
+    <ul>
+        <li>選択した期間のデータをCSVファイルでダウンロード</li>
+        <li>UTF-8 BOM付き（Excel対応）</li>
+        <li>CSV インジェクション対策済み（危険な先頭文字のエスケープ）</li>
+    </ul>
+
+    <h3>データ削除（パージ）</h3>
+    <ul>
+        <li>指定日数より古いデータを一括削除（デフォルト: 90日、最小: 1日）</li>
+        <li><code>manage_options</code> 権限とnonce検証が必要</li>
+        <li>設定履歴は最大100件まで自動保持</li>
+    </ul>
+
+    <!-- ============================
+         データ収集の仕組み
+         ============================ -->
+    <h2 id="data-collection">データ収集の仕組み</h2>
+
+    <p>データ収集は以下の3つのステップで行われます。</p>
+
+    <h3>1. トークン埋め込み（サーバーサイド）</h3>
+    <ul>
+        <li>PHP 側でページ生成時に HMAC-SHA256 トークンを計算し、<code>wp_add_inline_script</code> でインラインスクリプトとして HTML に埋め込みます</li>
+        <li>トークンは日次ローテーション（<code>intdiv(time(), DAY_IN_SECONDS)</code> でバケット計算）</li>
+        <li>トークン取得のための追加 API リクエストは発生しません</li>
+    </ul>
+
+    <h3>2. メトリクス計測と送信（ブラウザサイド）</h3>
+    <ul>
+        <li>web-vitals.js の <code>onLCP</code> / <code>onFCP</code> / <code>onINP</code> / <code>onCLS</code> / <code>onTTFB</code> コールバックで各メトリクスを収集</li>
+        <li>ユーザーがページを離れるとき（<code>visibilitychange</code> → <code>hidden</code> / <code>pagehide</code>）にバッファ内のメトリクスを一括送信</li>
+        <li>送信には <code>navigator.sendBeacon</code> を優先使用し、利用できない場合は <code>fetch</code>（<code>keepalive: true</code>）にフォールバック</li>
+        <li>REST API (<code>/wp-json/wpsb/v1/metrics</code>) に POST リクエスト</li>
+        <li>1リクエストに最大10件のメトリクスを含められます（1ページビューでは通常5件 = 5指標）</li>
+    </ul>
+
+    <h3>3. サーバー側のバリデーション</h3>
+    <ul>
+        <li>Same-Origin チェック（Origin / Referer ヘッダー）</li>
+        <li>HMAC トークン検証（当日のバケットと前日のバケットの両方を許可し、日付変更前後の送信も受理）</li>
+        <li>ペイロードサイズ制限（4KB 以下）</li>
+        <li>メトリクス名・値の範囲チェック（許可名: LCP / INP / CLS / FCP / TTFB のみ）</li>
+        <li>IP + 匿名ハッシュベースのレート制限（90秒あたり20リクエスト）</li>
+    </ul>
+
+    <div class="callout callout-note">
+        <p class="callout-title">ノート</p>
+        <p>匿名ハッシュはプライバシー保護のために使用されます。個人を特定する情報は収集されません。</p>
+    </div>
+
+    <!-- ============================
+         URL パスの正規化
+         ============================ -->
+    <h2 id="url-normalization">URL パスの正規化</h2>
+
+    <p>計測データの URL パスは自動的に正規化されます:</p>
+
+    <ul>
+        <li><code>/author/{name}/</code> &rarr; <code>/author/:author/</code></li>
+        <li><code>/members/{id}/</code> &rarr; <code>/members/:user/</code></li>
+        <li><code>/users/{id}/</code> &rarr; <code>/users/:user/</code></li>
+        <li>3桁以上の連続数字 &rarr; <code>:id</code>（例: <code>/product/12345/reviews/</code> &rarr; <code>/product/:id/reviews/</code>）</li>
+    </ul>
+
+    <p>これにより、類似ページが個別にカウントされることを防ぎます。正規化は <code>wpsb_normalize_path</code> フィルタでカスタマイズできます。</p>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">ヒント</p>
+        <p>URL パスの正規化をカスタマイズしたい場合は、<code>wpsb_normalize_path</code> フィルタを使用できます。最初の引数が <code>null</code> 以外の文字列を返すと、デフォルトの正規化は行われません。</p>
+    </div>
+
+    <!-- ============================
+         プライバシーと Cookie
+         ============================ -->
+    <h2 id="privacy">プライバシーと Cookie</h2>
+
+    <p>計測機能は訪問者の識別のために以下の Cookie を使用します:</p>
+
+    <table >
+        <thead>
+            <tr>
+                <th>項目</th>
+                <th>内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Cookie 名</td>
+                <td><code>wpsb_visitor</code></td>
+            </tr>
+            <tr>
+                <td>内容</td>
+                <td>32文字のランダムなハッシュ値（個人を特定する情報は含みません）</td>
+            </tr>
+            <tr>
+                <td>有効期間</td>
+                <td>30日間（デフォルト、設定画面の「Cookie 保持日数」で変更可能）</td>
+            </tr>
+            <tr>
+                <td>属性</td>
+                <td><code>SameSite=Lax</code>、HTTPS 環境では <code>Secure</code> 属性付き</td>
+            </tr>
+            <tr>
+                <td>目的</td>
+                <td>同一ブラウザからの重複計測を防止するための訪問者識別</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+        <p class="callout-title">注意</p>
+        <p>この Cookie は GDPR や各国の Cookie 規制の対象になる場合があります。計測機能を有効にする場合は、プライバシーポリシーに <code>wpsb_visitor</code> Cookie の使用目的と有効期間を明記することを推奨します。</p>
+    </div>
+
+    <!-- ============================
+         セキュリティ
+         ============================ -->
+    <h2 id="security">セキュリティ</h2>
+
+    <p>計測ダッシュボードでは以下のセキュリティ対策を実施しています:</p>
+
+    <ul>
+        <li>HMAC-SHA256 ローリングトークン認証（日次ローテーション、前日分も許可）</li>
+        <li>Same-Origin 検証（Origin / Referer ヘッダー）</li>
+        <li>ペイロードサイズ制限（4KB）</li>
+        <li>IP + 匿名ハッシュベースのレート制限（90秒間に20リクエスト）</li>
+        <li>メトリクス値の範囲バリデーション（許可されたメトリクス名と上限値チェック）</li>
+        <li>ダッシュボード API は <code>manage_options</code> 権限が必要</li>
+        <li>CSV エクスポート・データ削除は nonce 検証必須</li>
+    </ul>
+
+    <!-- Page Navigation -->
+    <nav class="page-nav">
+        <a href="image-optimization.html" class="prev">&laquo; 画像最適化</a>
+        <a href="exclusions.html" class="next">除外 URL パターン &raquo;</a>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="manual-footer">
+        <p>作者: <a href="https://contencial.co.jp/" target="_blank" rel="noopener">Contencial</a></p>
+        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.0</p>
+    </footer>
+
+</main>
+
+<!-- Lightbox -->
+<div class="lightbox"></div>
+
+<script src="js/manual.js"></script>
+</body>
+</html>

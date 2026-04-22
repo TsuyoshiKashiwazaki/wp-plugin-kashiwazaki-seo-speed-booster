@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart UX スピナー - Kashiwazaki SEO Speed Booster マニュアル</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Hamburger -->
+<button class="hamburger-btn" aria-label="メニューを開く" aria-expanded="false">&#9776;</button>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Speed Booster</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li class="section-label">機能</li>
+        <li><a href="prefetch.html">予測プリフェッチ</a></li>
+        <li><a href="speculation.html">Speculation Rules</a></li>
+        <li class="active"><a href="smart-ux.html">Smart UX スピナー</a></li>
+        <li><a href="image-optimization.html">画像最適化</a></li>
+        <li class="section-label">管理</li>
+        <li><a href="dashboard.html">計測ダッシュボード</a></li>
+        <li><a href="exclusions.html">除外 URL パターン</a></li>
+        <li class="section-label">サポート</li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<main class="content">
+
+    <h1>Smart UX スピナー</h1>
+
+    <p class="lead">ページ遷移時にブランドロゴ入りのローディングスピナーを表示し、ユーザーの体感速度を向上させます。</p>
+
+    <!-- Smart UX スピナーとは -->
+    <h2>Smart UX スピナーとは</h2>
+
+    <div class="callout callout-warning">
+        <p class="callout-title">前提条件</p>
+        <p>Smart UX スピナーの JavaScript は「予測プリフェッチ」機能と同じスクリプト（booster.js）に同梱されています。<strong>「予測プリフェッチを有効にする」も併せて ON にしてください。</strong>予測プリフェッチが無効の場合、スピナーは動作しません。</p>
+    </div>
+
+    <p>Smart UX スピナーは、リンクをクリックしてからページが表示されるまでの間にローディングオーバーレイを表示する機能です。実際のページ読み込み速度は変わりませんが、ユーザーに「処理中」であることを視覚的にフィードバックすることで、待ち時間の体感を改善します。</p>
+
+    <ul>
+        <li>閾値（ミリ秒）以内にページが表示された場合、スピナーは表示されません</li>
+        <li>閾値を超えた場合のみスピナーが表示され、ページ遷移完了で自動的に消えます</li>
+        <li>ブランドロゴを表示でき、サイトの統一感を保てます</li>
+    </ul>
+
+    <!-- 設定画面 -->
+    <h2>設定画面</h2>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/04-smart-ux-tab.png" alt="Smart UX 設定タブ" class="lightbox-trigger">
+        <figcaption>Smart UX 設定タブ</figcaption>
+    </figure>
+
+    <!-- 設定項目の詳細 -->
+    <h2>設定項目の詳細</h2>
+
+    <h3>表示閾値 <code>smart_ux_threshold_ms</code></h3>
+
+    <ul>
+        <li>ページ遷移にかかる時間がこの値（ミリ秒）を超えた場合にスピナーを表示</li>
+        <li>デフォルト: 200ms</li>
+        <li>設定範囲: 0〜5000ms</li>
+        <li>0ms に設定するとすべてのページ遷移でスピナーが表示されます</li>
+        <li>推奨値: 200〜500ms（短すぎるとチラつき、長すぎるとスピナー表示前にページが遷移する可能性）</li>
+    </ul>
+
+    <h3>ロゴ URL <code>smart_ux_logo_url</code></h3>
+
+    <ul>
+        <li>スピナーの中央に表示するロゴ画像の URL</li>
+        <li>空欄の場合はロゴなしの CSS アニメーションスピナーのみ表示</li>
+        <li>WordPress メディアライブラリの画像 URL を指定可能</li>
+        <li>推奨画像サイズ: 80x80px〜200x200px</li>
+    </ul>
+
+    <h3>背景色 <code>smart_ux_bg_color</code></h3>
+
+    <ul>
+        <li>オーバーレイの背景色（16進数カラーコード）</li>
+        <li>デフォルト: #ffffff（白）</li>
+        <li>サイトのデザインに合わせて変更可能</li>
+    </ul>
+
+    <h3>背景の不透明度 <code>smart_ux_bg_opacity</code></h3>
+
+    <ul>
+        <li>オーバーレイの背景の不透明度</li>
+        <li>デフォルト: 0.8（80%）</li>
+        <li>設定範囲: 0.0〜1.0</li>
+        <li>1.0 で完全に不透明、0.0 で完全に透明</li>
+    </ul>
+
+    <!-- 動作の仕組み -->
+    <h2>動作の仕組み</h2>
+
+    <p>Smart UX スピナーは以下の流れで動作します。</p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <h4>ユーザーがリンクをクリック</h4>
+            <p>同一オリジンのリンクがクリックされると、JavaScript がイベントを検知します。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <h4>JavaScript が閾値タイマーを開始</h4>
+            <p>設定された閾値（ミリ秒）のタイマーを開始し、ページ遷移の完了を待ちます。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <h4>閾値以内にページが遷移すればスピナーは表示されない</h4>
+            <p>ページの読み込みが十分に高速な場合、スピナーは表示されずシームレスに遷移します。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">4</span>
+        <div class="step-body">
+            <h4>閾値を超えた場合、CSS アニメーションのオーバーレイが表示</h4>
+            <p>タイマーが閾値を超えると、ロゴ付き（設定時）のローディングオーバーレイがフェードインします。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">5</span>
+        <div class="step-body">
+            <h4>ページ遷移完了で自動的に非表示</h4>
+            <p>pageshow / popstate イベントでタイマーがクリアされスピナーが非表示になります。通常のナビゲーションではドキュメント自体が置き換わるため、自然にスピナーが消えます。</p>
+        </div>
+    </div>
+
+    <div class="callout callout-note">
+        <p class="callout-title">ノート</p>
+        <p>Smart UX スピナーは同一オリジンのリンクのみに適用されます。外部サイトへのリンクでは動作しません。</p>
+    </div>
+
+    <div class="callout callout-note">
+        <p class="callout-title">ノート</p>
+        <p>予測プリフェッチとの依存関係については、ページ上部の「前提条件」を参照してください。</p>
+    </div>
+
+    <!-- カスタマイズ例 -->
+    <h2>カスタマイズ例</h2>
+
+    <h3>コーポレートサイト向け</h3>
+
+    <table >
+        <thead>
+            <tr>
+                <th>項目</th>
+                <th>設定値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ロゴ</td>
+                <td>会社ロゴ（80x80px）</td>
+            </tr>
+            <tr>
+                <td>背景色</td>
+                <td>ブランドカラー</td>
+            </tr>
+            <tr>
+                <td>不透明度</td>
+                <td>0.9</td>
+            </tr>
+            <tr>
+                <td>閾値</td>
+                <td>300ms</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>ブログ向け</h3>
+
+    <table >
+        <thead>
+            <tr>
+                <th>項目</th>
+                <th>設定値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ロゴ</td>
+                <td>なし</td>
+            </tr>
+            <tr>
+                <td>背景色</td>
+                <td>#ffffff</td>
+            </tr>
+            <tr>
+                <td>不透明度</td>
+                <td>0.7</td>
+            </tr>
+            <tr>
+                <td>閾値</td>
+                <td>200ms</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>ECサイト向け</h3>
+
+    <table >
+        <thead>
+            <tr>
+                <th>項目</th>
+                <th>設定値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ロゴ</td>
+                <td>ショップロゴ</td>
+            </tr>
+            <tr>
+                <td>背景色</td>
+                <td>#f5f5f5</td>
+            </tr>
+            <tr>
+                <td>不透明度</td>
+                <td>0.85</td>
+            </tr>
+            <tr>
+                <td>閾値</td>
+                <td>500ms</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+        <p class="callout-title">注意</p>
+        <p>不透明度を低くしすぎると、ユーザーがスピナーに気づかず混乱する可能性があります。0.7以上を推奨します。</p>
+    </div>
+
+    <!-- Page Navigation -->
+    <nav class="page-nav">
+        <a href="speculation.html" class="prev">&laquo; Speculation Rules</a>
+        <a href="image-optimization.html" class="next">画像最適化 &raquo;</a>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="manual-footer">
+        <p>作者: <a href="https://contencial.co.jp/" target="_blank" rel="noopener">Contencial</a></p>
+        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.0</p>
+    </footer>
+
+</main>
+

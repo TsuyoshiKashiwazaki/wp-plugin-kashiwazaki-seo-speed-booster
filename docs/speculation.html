@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speculation Rules - Kashiwazaki SEO Speed Booster マニュアル</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Hamburger Button (Mobile) -->
+<button class="hamburger-btn" aria-label="メニューを開く" aria-expanded="false">&#9776;</button>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Speed Booster</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li class="section-label">機能</li>
+        <li><a href="prefetch.html">予測プリフェッチ</a></li>
+        <li><a href="speculation.html">Speculation Rules</a></li>
+        <li><a href="smart-ux.html">Smart UX スピナー</a></li>
+        <li><a href="image-optimization.html">画像最適化</a></li>
+        <li class="section-label">管理</li>
+        <li><a href="dashboard.html">計測ダッシュボード</a></li>
+        <li><a href="exclusions.html">除外 URL パターン</a></li>
+        <li class="section-label">サポート</li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<main class="content">
+
+    <h1>Speculation Rules</h1>
+    <p class="lead">Speculation Rules API はブラウザ標準の機能で、ページの事前レンダリングや事前プリフェッチをブラウザに指示します。</p>
+
+    <!-- ============================
+         Speculation Rules API とは
+         ============================ -->
+    <h2 id="what-is-speculation-rules">Speculation Rules API とは</h2>
+
+    <p>Speculation Rules API は Chrome 109 以降で利用可能なブラウザ標準の API です。従来の <code>&lt;link rel="prefetch"&gt;</code> と異なり、JSON ベースのルール定義で「どのページを」「どの積極度で」事前読み込みするかを宣言的に指定できます。特にプリレンダリング（事前レンダリング）を使うと、リンク先のページを完全にレンダリングした状態でメモリに保持するため、遷移がほぼ瞬時（0ms に近い LCP）になります。</p>
+
+    <div class="callout callout-note">
+        <p class="callout-title">ノート</p>
+        <p>Speculation Rules API は Chrome / Edge 109 以降で対応しています。非対応ブラウザでは <code>&lt;script type="speculationrules"&gt;</code> は無視され、サイトに影響を与えません。</p>
+    </div>
+
+    <!-- ============================
+         設定画面
+         ============================ -->
+    <h2 id="settings-screen">設定画面</h2>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/03-speculation-tab.png" alt="Speculation Rules 設定タブ" class="lightbox-trigger">
+        <figcaption>図: Speculation Rules 設定タブ</figcaption>
+    </figure>
+
+    <!-- ============================
+         設定項目の詳細
+         ============================ -->
+    <h2 id="settings-detail">設定項目の詳細</h2>
+
+    <h3>事前レンダリング <code>speculation_prerender</code></h3>
+    <ul>
+        <li>リンク先のページを完全にレンダリングし、メモリに保持</li>
+        <li>遷移時にほぼ瞬時にページが表示される</li>
+        <li>メモリ消費が大きいため、ブラウザが自動的に制限を適用</li>
+        <li>eagerness に応じてブラウザが対象ページ数を調整</li>
+    </ul>
+
+    <h3>事前プリフェッチ <code>speculation_prefetch</code></h3>
+    <ul>
+        <li>リンク先のHTMLとサブリソースをダウンロードのみ</li>
+        <li>レンダリングは行わないため、メモリ消費が少ない</li>
+        <li>eagerness は固定で <code>conservative</code>(クリック直前)</li>
+    </ul>
+
+    <h3>Eagerness(積極度) <code>speculation_eagerness</code></h3>
+    <p>4段階の積極度を設定可能:</p>
+
+    <table >
+        <thead>
+            <tr>
+                <th>レベル</th>
+                <th>説明</th>
+                <th>動作タイミング</th>
+                <th>対象ページ数の目安</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>immediate</code></td>
+                <td>即座に実行</td>
+                <td>ルール検出時</td>
+                <td>最大約10ページ（Chrome 130時点）</td>
+            </tr>
+            <tr>
+                <td><code>eager</code></td>
+                <td>積極的に実行</td>
+                <td>ルール検出時(やや控えめ)</td>
+                <td>最大約10ページ（Chrome 130時点）</td>
+            </tr>
+            <tr>
+                <td><code>moderate</code></td>
+                <td>適度に実行</td>
+                <td>ホバー時(200ms)</td>
+                <td>最大2ページ（Chrome 130時点）</td>
+            </tr>
+            <tr>
+                <td><code>conservative</code></td>
+                <td>控えめに実行</td>
+                <td>クリック直前(mousedown/pointerdown)</td>
+                <td>1ページ（Chrome 130時点）</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">ヒント</p>
+        <p>初めて使う場合は <code>moderate</code>(デフォルト)から始めることをお勧めします。サイトの動作を確認してから <code>eager</code> や <code>immediate</code> に変更してください。</p>
+    </div>
+
+    <!-- ============================
+         除外パターンとの連携
+         ============================ -->
+    <h2 id="exclusion-integration">除外パターンとの連携</h2>
+
+    <p>除外URLパターンで指定した glob パターンは、Speculation Rules の <code>not.href_matches</code> に自動的に変換されます。これにより、除外対象のページは事前レンダリング・プリフェッチの対象からも自動的に外れます。</p>
+
+    <div class="callout callout-note">
+        <p class="callout-title">ノート</p>
+        <p>正規表現パターンは Speculation Rules API がサポートしていないため、glob パターンのみが除外に適用されます。正規表現で除外しているページがある場合は、glob パターンでも指定してください。</p>
+    </div>
+
+    <!-- ============================
+         出力されるHTML
+         ============================ -->
+    <h2 id="output-html">出力されるHTML</h2>
+
+    <p>本機能を有効にすると、ページの <code>&lt;head&gt;</code> 内に以下のような JSON が出力されます。</p>
+
+    <pre><code>&lt;script type="speculationrules"&gt;
+{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-admin/*","*/cart/*"]}}]},"eagerness":"moderate"}]}
+&lt;/script&gt;</code></pre>
+
+    <!-- ============================
+         予測プリフェッチとの違い
+         ============================ -->
+    <h2 id="comparison-with-prefetch">予測プリフェッチとの違い</h2>
+
+    <table >
+        <thead>
+            <tr>
+                <th>項目</th>
+                <th>予測プリフェッチ</th>
+                <th>Speculation Rules</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>実装方式</td>
+                <td>JavaScript (<code>&lt;link rel="prefetch"&gt;</code>)</td>
+                <td>ブラウザ API (<code>&lt;script type="speculationrules"&gt;</code>)</td>
+            </tr>
+            <tr>
+                <td>レンダリング</td>
+                <td>なし(ダウンロードのみ)</td>
+                <td>あり(prerender時)</td>
+            </tr>
+            <tr>
+                <td>ブラウザ対応</td>
+                <td>全モダンブラウザ</td>
+                <td>Chrome/Edge 109+</td>
+            </tr>
+            <tr>
+                <td>トリガー</td>
+                <td>JS で動的に制御</td>
+                <td>ブラウザが宣言ルールで制御</td>
+            </tr>
+            <tr>
+                <td>メモリ消費</td>
+                <td>少ない</td>
+                <td>多い(prerender時)</td>
+            </tr>
+            <tr>
+                <td>効果</td>
+                <td>ページ読み込み高速化</td>
+                <td>ほぼ瞬時のページ遷移</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">ヒント</p>
+        <p>両方を併用することで、Speculation Rules 非対応ブラウザには予測プリフェッチでカバーし、対応ブラウザではより高速な Speculation Rules が適用されます。</p>
+    </div>
+
+    <!-- Page Navigation -->
+    <nav class="page-nav">
+        <a href="prefetch.html" class="prev">&laquo; 予測プリフェッチ</a>
+        <a href="smart-ux.html" class="next">Smart UX スピナー &raquo;</a>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="manual-footer">
+        <p>作者: <a href="https://contencial.co.jp/" target="_blank" rel="noopener">Contencial</a></p>
+        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.0</p>
+    </footer>
+
+</main>
+
+<!-- Lightbox -->
+<div class="lightbox"></div>
+
+<script src="js/manual.js"></script>
+</body>
+</html>

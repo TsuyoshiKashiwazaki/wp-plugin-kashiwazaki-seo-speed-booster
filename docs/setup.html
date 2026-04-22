@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インストール・初期設定 - Speed Booster マニュアル</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<button class="hamburger-btn" aria-label="メニューを開く" aria-expanded="false">&#9776;</button>
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Speed Booster</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li class="section-label">機能</li>
+        <li><a href="prefetch.html">予測プリフェッチ</a></li>
+        <li><a href="speculation.html">Speculation Rules</a></li>
+        <li><a href="smart-ux.html">Smart UX スピナー</a></li>
+        <li><a href="image-optimization.html">画像最適化</a></li>
+        <li class="section-label">管理</li>
+        <li><a href="dashboard.html">計測ダッシュボード</a></li>
+        <li><a href="exclusions.html">除外 URL パターン</a></li>
+        <li class="section-label">サポート</li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+
+    <h1>インストール・初期設定</h1>
+    <p class="lead">プラグインのインストールから初期設定まで、ステップバイステップで解説します。</p>
+
+    <h2>インストール方法</h2>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <h4>プラグインをアップロード</h4>
+            <p><code>kashiwazaki-seo-speed-booster</code> フォルダを <code>/wp-content/plugins/</code> にアップロード（または ZIP ファイルを管理画面からアップロード）します。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <h4>プラグインを有効化</h4>
+            <p>WordPress 管理画面の「プラグイン」一覧で「Kashiwazaki SEO Speed Booster」を見つけ、「有効化」をクリックします。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <h4>管理画面の左メニューに追加されます</h4>
+            <p>有効化すると、左メニューに「Kashiwazaki SEO Speed Booster」が追加されます。クリックして設定画面を開いてください。</p>
+        </div>
+    </div>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/00-menu-location.png" alt="Speed Booster メニューの場所" class="lightbox-trigger">
+        <figcaption>図: 「Kashiwazaki SEO Speed Booster」メニューの場所（赤枠）</figcaption>
+    </figure>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">ヒント</p>
+        <p>メニューアイコンは <code>dashicons-performance</code>（スピードメーター）です。WP-CLI を使う場合は <code>wp plugin activate kashiwazaki-seo-speed-booster</code> でも有効化できます。</p>
+    </div>
+
+    <h2>管理画面の構成</h2>
+
+    <p>管理画面は7つのタブで構成されています。各タブはそれぞれ独立して保存でき、他のタブの設定に影響しません。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:25%;">タブ</th>
+                <th>説明</th>
+                <th style="width:25%;">詳細ページ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>一般設定</td>
+                <td>プラグイン全体の有効/無効と各機能のマスタースイッチ</td>
+                <td>本ページ下部</td>
+            </tr>
+            <tr>
+                <td>予測プリフェッチ</td>
+                <td>リンク先の事前読み込みトリガーとディレイ設定</td>
+                <td><a href="prefetch.html">予測プリフェッチ</a></td>
+            </tr>
+            <tr>
+                <td>Speculation Rules</td>
+                <td>Speculation Rules API の事前レンダリング/プリフェッチ設定</td>
+                <td><a href="speculation.html">Speculation Rules</a></td>
+            </tr>
+            <tr>
+                <td>Smart UX</td>
+                <td>ページ遷移スピナーの表示閾値・ロゴ・背景色</td>
+                <td><a href="smart-ux.html">Smart UX スピナー</a></td>
+            </tr>
+            <tr>
+                <td>画像最適化</td>
+                <td>loading / decoding / fetchpriority 属性の自動付与</td>
+                <td><a href="image-optimization.html">画像最適化</a></td>
+            </tr>
+            <tr>
+                <td>計測・ダッシュボード</td>
+                <td>Core Web Vitals の収集・グラフ表示・CSV エクスポート</td>
+                <td><a href="dashboard.html">計測ダッシュボード</a></td>
+            </tr>
+            <tr>
+                <td>除外 URL</td>
+                <td>最適化対象外の URL パターン設定</td>
+                <td><a href="exclusions.html">除外 URL パターン</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>一般設定タブ</h2>
+
+    <p>一般設定タブは、プラグイン全体のマスタースイッチと各機能の ON/OFF を管理するタブです。</p>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/01-general-tab.png" alt="一般設定タブ" class="lightbox-trigger">
+        <figcaption>図: 一般設定タブ</figcaption>
+    </figure>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:35%;">設定項目</th>
+                <th>キー</th>
+                <th>種類</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>プラグイン全体の有効化</td>
+                <td><code>enabled</code></td>
+                <td>チェックボックス</td>
+                <td>OFF</td>
+                <td>全機能のマスタースイッチ。OFF だと個別機能が ON でも動作しない</td>
+            </tr>
+            <tr>
+                <td>予測プリフェッチ</td>
+                <td><code>prefetch_enabled</code></td>
+                <td>チェックボックス</td>
+                <td>OFF</td>
+                <td>予測プリフェッチ機能の有効/無効</td>
+            </tr>
+            <tr>
+                <td>Speculation Rules</td>
+                <td><code>speculation_enabled</code></td>
+                <td>チェックボックス</td>
+                <td>OFF</td>
+                <td>Speculation Rules API の有効/無効</td>
+            </tr>
+            <tr>
+                <td>Smart UX（遅延スピナー）</td>
+                <td><code>smart_ux_enabled</code></td>
+                <td>チェックボックス</td>
+                <td>OFF</td>
+                <td>Smart UX スピナーの有効/無効</td>
+            </tr>
+            <tr>
+                <td>画像最適化</td>
+                <td><code>image_enabled</code></td>
+                <td>チェックボックス</td>
+                <td>OFF</td>
+                <td>画像属性自動付与の有効/無効</td>
+            </tr>
+            <tr>
+                <td>Core Web Vitals 計測</td>
+                <td><code>metrics_enabled</code></td>
+                <td>チェックボックス</td>
+                <td>OFF</td>
+                <td>CWV 計測の有効/無効</td>
+            </tr>
+            <tr>
+                <td>URL 除外フィルタ</td>
+                <td><code>exclude_enabled</code></td>
+                <td>チェックボックス</td>
+                <td>ON</td>
+                <td>除外 URL パターンの有効/無効</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+        <p class="callout-title">注意</p>
+        <p>「プラグイン全体の有効化」がオフの場合、他のスイッチがすべてオンでも機能しません。必ず最初にプラグイン全体を有効化してください。</p>
+    </div>
+
+    <h2>推奨初期設定</h2>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <h4>プラグイン全体を有効化</h4>
+            <p>「一般設定」タブで <code>enabled</code> をオンにします。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <h4>計測を有効化して現状を把握</h4>
+            <p><code>metrics_enabled</code> をオンにして、まず現在のパフォーマンスを把握します。1〜2日待ってデータを確認してください。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <h4>予測プリフェッチを有効化</h4>
+            <p>最もリスクが低い最適化です。<code>prefetch_enabled</code> をオンにし、プリフェッチタブでホバー検知を有効にしましょう。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">4</span>
+        <div class="step-body">
+            <h4>他の機能を順次有効化</h4>
+            <p>1〜2日データを確認してから、画像最適化 → Speculation Rules → Smart UX の順に有効にします。各機能の詳細は個別ページを参照してください。</p>
+        </div>
+    </div>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">おすすめ</p>
+        <p>すべての機能を一度に有効にせず、1つずつ有効にしてダッシュボードでパフォーマンスへの影響を確認することをお勧めします。</p>
+    </div>
+
+    <nav class="page-nav">
+        <a href="index.html" class="prev">&laquo; 概要</a>
+        <a href="prefetch.html" class="next">予測プリフェッチ &raquo;</a>
+    </nav>
+
+    <footer class="manual-footer">
+        <p>作者: <a href="https://contencial.co.jp/" target="_blank" rel="noopener">Contencial</a></p>
+        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.0</p>
+    </footer>
+
+</main>
+
+<div class="lightbox"></div>
+<script src="js/manual.js"></script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>除外 URL パターン - Kashiwazaki SEO Speed Booster マニュアル</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Hamburger -->
+<button class="hamburger-btn" aria-label="メニューを開く" aria-expanded="false">&#9776;</button>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Speed Booster</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li class="section-label">機能</li>
+        <li><a href="prefetch.html">予測プリフェッチ</a></li>
+        <li><a href="speculation.html">Speculation Rules</a></li>
+        <li><a href="smart-ux.html">Smart UX スピナー</a></li>
+        <li><a href="image-optimization.html">画像最適化</a></li>
+        <li class="section-label">管理</li>
+        <li><a href="dashboard.html">計測ダッシュボード</a></li>
+        <li class="active"><a href="exclusions.html">除外 URL パターン</a></li>
+        <li class="section-label">サポート</li>
+        <li><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<main class="content">
+
+    <h1>除外 URL パターン</h1>
+
+    <p class="lead">glob パターンと正規表現を組み合わせて、特定のページを最適化の対象から除外したり、対象を限定したりできます。</p>
+
+    <!-- 除外パターンの概要 -->
+    <h2>除外パターンの概要</h2>
+
+    <p>除外URLパターンでは、予測プリフェッチや Speculation Rules の対象から特定のページを除外できます。1行に1パターンずつ記述し、glob パターンと正規表現の両方に対応しています。</p>
+
+    <!-- よく使う除外パターン例 -->
+    <h3>よく使う除外パターン例</h3>
+
+    <pre><code>/wp-admin/*
+/wp-login.php
+*/cart/*
+*/checkout/*
+*/my-account/*
+/wp-json/*
+*.xml
+*.pdf
+/feed/*</code></pre>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">ヒント</p>
+        <p>WooCommerce を使用している場合は、<code>*/cart/*</code>、<code>*/checkout/*</code>、<code>*/my-account/*</code> を除外することをお勧めします。<code>*/</code> プレフィックスにより多言語プラグイン（<code>/en/cart/</code> 等）にも対応します。</p>
+    </div>
+
+    <!-- 設定画面 -->
+    <h2>設定画面</h2>
+
+    <figure class="screenshot">
+        <img src="images/screenshots/07-exclusions-tab.png" alt="除外 URL パターン設定タブ" class="lightbox-trigger">
+        <figcaption>除外 URL パターン設定タブ</figcaption>
+    </figure>
+
+    <!-- パターンの種類 -->
+    <h2>パターンの種類</h2>
+
+    <h3>Glob パターン</h3>
+
+    <ul>
+        <li><code>*</code> は任意の文字列（0文字以上）にマッチ</li>
+        <li><code>?</code> は任意の1文字にマッチ</li>
+        <li>それ以外の文字はリテラルとして扱われます</li>
+        <li>パスの完全一致が必要です（部分一致ではありません）</li>
+    </ul>
+
+    <table >
+        <thead>
+            <tr>
+                <th>パターン</th>
+                <th>マッチする URL</th>
+                <th>マッチしない URL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>/wp-admin/*</code></td>
+                <td><code>/wp-admin/plugins.php</code>、<code>/wp-admin/edit.php</code></td>
+                <td><code>/wp-admin</code>（末尾スラッシュなし）</td>
+            </tr>
+            <tr>
+                <td><code>*/cart/*</code></td>
+                <td><code>/cart/</code>、<code>/shop/cart/</code></td>
+                <td><code>/my-cart/</code></td>
+            </tr>
+            <tr>
+                <td><code>/page/*/edit</code></td>
+                <td><code>/page/123/edit</code></td>
+                <td><code>/page/edit</code></td>
+            </tr>
+            <tr>
+                <td><code>*.pdf</code></td>
+                <td><code>/docs/manual.pdf</code></td>
+                <td><code>/docs/manual.html</code></td>
+            </tr>
+            <tr>
+                <td><code>/about</code></td>
+                <td><code>/about</code></td>
+                <td><code>/about/team</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>正規表現パターン</h3>
+
+    <ul>
+        <li><code>/pattern/flags</code> 形式で記述</li>
+        <li>先頭と末尾が <code>/</code> で囲まれ、末尾の <code>/</code> の後にフラグ（<code>i</code>, <code>m</code>, <code>s</code>, <code>u</code>）を指定可能</li>
+        <li>フラグなしの場合は、パターン本体に正規表現メタ文字（<code>\</code>, <code>^</code>, <code>$</code>, <code>[</code>, <code>(</code>, <code>)</code>, <code>|</code>, <code>+</code>, <code>{</code>）が含まれている必要があります</li>
+        <li>PHP（PCRE）と JavaScript（RegExp）の共通サブセットで評価されます。対応フラグは <code>i</code>（大文字小文字無視）、<code>m</code>（複数行）、<code>s</code>（dotall）、<code>u</code>（Unicode）の 4 つです</li>
+    </ul>
+
+    <table >
+        <thead>
+            <tr>
+                <th>パターン</th>
+                <th>説明</th>
+                <th>マッチする URL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>/^\/author\/.+/</code></td>
+                <td>著者ページ</td>
+                <td><code>/author/john/</code>、<code>/author/jane/</code></td>
+            </tr>
+            <tr>
+                <td><code>/^\/tag\/.+/i</code></td>
+                <td>タグページ（大文字小文字区別なし）</td>
+                <td><code>/tag/wordpress/</code>、<code>/Tag/SEO/</code></td>
+            </tr>
+            <tr>
+                <td><code>/\.(pdf|docx?)$/</code></td>
+                <td>ドキュメントファイル</td>
+                <td><code>/files/doc.pdf</code>、<code>/files/report.docx</code></td>
+            </tr>
+            <tr>
+                <td><code>/^\/members\/\d+/</code></td>
+                <td>メンバーIDページ</td>
+                <td><code>/members/123/</code>、<code>/members/456/profile</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+        <p class="callout-title">注意</p>
+        <p>パス形式のパターン（例: <code>/wp-admin/</code>）はフラグなし・メタ文字なしの場合、glob パターンとして扱われます。正規表現として扱いたい場合は、メタ文字を含めるか（例: <code>/^\/wp-admin\/.*/</code>）、フラグを付けてください（例: <code>/\/wp-admin\//i</code>）。</p>
+    </div>
+
+    <!-- glob vs 正規表現の判定ルール -->
+    <h2>glob vs 正規表現の判定ルール</h2>
+
+    <p>プラグインは以下のロジックでパターンの種類を自動判定します。</p>
+
+    <ul>
+        <li>パターンが <code>/</code> で始まり、2番目以降の <code>/</code> で終わる場合に正規表現候補</li>
+        <li>末尾の <code>/</code> の後にフラグ文字（<code>i</code>, <code>m</code>, <code>s</code>, <code>u</code>）がある場合 → 正規表現</li>
+        <li>フラグがない場合、パターン本体に正規表現メタ文字が1つ以上あれば → 正規表現</li>
+        <li>それ以外 → glob パターン</li>
+    </ul>
+
+    <table >
+        <thead>
+            <tr>
+                <th>パターン</th>
+                <th>判定</th>
+                <th>理由</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>/wp-admin/</code></td>
+                <td>glob</td>
+                <td>フラグなし、メタ文字なし</td>
+            </tr>
+            <tr>
+                <td><code>/wp-admin/*</code></td>
+                <td>glob</td>
+                <td><code>/</code> で始まるが <code>*</code> で終わるため正規表現形式でない</td>
+            </tr>
+            <tr>
+                <td><code>/^\/author\/.+/</code></td>
+                <td>正規表現</td>
+                <td>フラグなし、メタ文字あり（<code>^</code>, <code>\</code>, <code>.</code>, <code>+</code>）</td>
+            </tr>
+            <tr>
+                <td><code>/^\/author\/.+/i</code></td>
+                <td>正規表現</td>
+                <td>フラグ <code>i</code> あり</td>
+            </tr>
+            <tr>
+                <td><code>/page/</code></td>
+                <td>glob</td>
+                <td>フラグなし、メタ文字なし</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 除外パターンと許可パターン -->
+    <h2>除外パターンと許可パターン</h2>
+
+    <h3>除外パターン（Exclude Patterns）</h3>
+
+    <ul>
+        <li>指定したパターンにマッチするURLを最適化対象から除外</li>
+        <li><strong>予測プリフェッチ</strong>: glob・正規表現パターンともに JavaScript（booster.js）で評価されます</li>
+        <li><strong>Speculation Rules</strong>: glob パターンのみが <code>not.href_matches</code> に反映されます。正規表現パターンが 1 つでも含まれると、安全のため Speculation Rules の出力自体が停止します（JavaScript 側のプリフェッチは引き続き正規表現を評価します）</li>
+        <li>Smart UX スピナー・画像最適化・計測には影響しません</li>
+        <li><code>wpsb_exclude_patterns</code> / <code>wpsb_include_patterns</code> フィルタでパターン配列をカスタマイズ可能</li>
+    </ul>
+
+    <h3>許可パターン（Include Patterns）</h3>
+
+    <ul>
+        <li>設定すると、マッチするURLのみを<strong>予測プリフェッチ</strong>の対象にします（ホワイトリストモード）</li>
+        <li>空の場合はすべてのURLが対象（デフォルト）</li>
+        <li>除外パターンと併用可能（許可パターンにマッチしても除外パターンにマッチすれば除外）</li>
+        <li><strong>Speculation Rules</strong>: glob パターンは <code>href_matches</code> の対象範囲として反映されます。正規表現のみの場合は Speculation Rules の出力が停止します</li>
+        <li>Smart UX スピナー・画像最適化・計測には影響しません</li>
+        <li>「URL 除外フィルタ」トグルを OFF にすると、除外パターンとともにホワイトリストも無効になります</li>
+    </ul>
+
+    <!-- Speculation Rules との連携 -->
+    <h2>Speculation Rules との連携</h2>
+
+    <p>除外パターンのうち glob パターンは、Speculation Rules の <code>not.href_matches</code> に自動変換されます。ただし、正規表現パターンが 1 つでも含まれている場合は、安全のため Speculation Rules の出力自体が停止します（正規表現は API 非対応のため、一部の除外だけが効かない状態を防ぎます）。JavaScript 側の予測プリフェッチでは正規表現も含めて全パターンが評価されます。</p>
+
+    <p>許可パターン（ホワイトリスト）のうち glob パターンは、Speculation Rules の <code>href_matches</code>（対象範囲）にも反映されます。許可パターンが正規表現のみの場合は、Speculation Rules の出力が停止します。</p>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">ヒント</p>
+        <p>Speculation Rules で確実にページを除外するには、glob パターンのみを使用してください。正規表現パターンが含まれると Speculation Rules は全体が停止し、JavaScript のプリフェッチのみが動作します。</p>
+    </div>
+
+    <div class="callout callout-warning">
+        <p class="callout-title">組み込み除外について</p>
+        <p>WordPress 管理画面（<code>/wp-admin/*</code>）やログイン、カート・チェックアウト等の URL は、「URL 除外フィルタ」の ON/OFF に関係なく、Speculation Rules では常に除外されます。これはプリレンダリングによる副作用事故を防ぐ安全機構です。</p>
+    </div>
+
+    <!-- Page Navigation -->
+    <nav class="page-nav">
+        <a href="dashboard.html" class="prev">&laquo; 計測ダッシュボード</a>
+        <a href="troubleshooting.html" class="next">トラブルシューティング &raquo;</a>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="manual-footer">
+        <p>作者: <a href="https://contencial.co.jp/" target="_blank" rel="noopener">Contencial</a></p>
+        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.0</p>
+    </footer>
+
+</main>
+

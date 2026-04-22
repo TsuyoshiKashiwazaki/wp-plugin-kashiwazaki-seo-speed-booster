@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トラブルシューティング - Kashiwazaki SEO Speed Booster マニュアル</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Hamburger Button (Mobile) -->
+<button class="hamburger-btn" aria-label="メニューを開く" aria-expanded="false">&#9776;</button>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="color:#fff;">Speed Booster</h2>
+        <span class="version">v1.0.0</span>
+        <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
+    </div>
+    <ul>
+        <li><a href="index.html">概要</a></li>
+        <li><a href="setup.html">インストール・初期設定</a></li>
+        <li class="section-label">機能</li>
+        <li><a href="prefetch.html">予測プリフェッチ</a></li>
+        <li><a href="speculation.html">Speculation Rules</a></li>
+        <li><a href="smart-ux.html">Smart UX スピナー</a></li>
+        <li><a href="image-optimization.html">画像最適化</a></li>
+        <li class="section-label">管理</li>
+        <li><a href="dashboard.html">計測ダッシュボード</a></li>
+        <li><a href="exclusions.html">除外 URL パターン</a></li>
+        <li class="section-label">サポート</li>
+        <li class="active"><a href="troubleshooting.html">トラブルシューティング</a></li>
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<main class="content">
+
+    <h1>トラブルシューティング</h1>
+    <p class="lead">よくある問題とその解決方法、動作要件、技術仕様をまとめています。</p>
+
+    <h3>このページの内容</h3>
+    <ul>
+        <li><a href="#faq">よくある問題と解決策</a></li>
+        <li><a href="#requirements">動作要件</a></li>
+        <li><a href="#specifications">技術仕様</a></li>
+        <li><a href="#developer-hooks">開発者向けフック</a></li>
+        <li><a href="#architecture">アーキテクチャ</a></li>
+    </ul>
+
+    <!-- ============================
+         よくある問題と解決策
+         ============================ -->
+    <h2 id="faq">よくある問題と解決策</h2>
+
+    <!-- Q1: プラグインを有効化しても何も変わらない -->
+    <h3>Q: プラグインを有効化しても何も変わらない</h3>
+
+    <p><strong>原因:</strong> 「一般設定」タブでプラグイン全体の有効化がオフになっている可能性があります。</p>
+
+    <p><strong>解決策:</strong></p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>管理画面の左メニュー「Kashiwazaki SEO Speed Booster」→「一般設定」タブを開く</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>「プラグイン全体の有効化」チェックボックスをオンにする</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>使用したい機能の個別スイッチもオンにする</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">4</span>
+        <div class="step-body">
+            <p>設定を保存する</p>
+        </div>
+    </div>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">ヒント</p>
+        <p>プラグイン全体の有効化は全機能のマスタースイッチです。これがオフだと個別機能がオンでも動作しません。</p>
+    </div>
+
+    <!-- Q2: Speculation Rules が動作しない -->
+    <h3>Q: Speculation Rules が動作しない</h3>
+
+    <p><strong>原因:</strong> ブラウザが Speculation Rules API に対応していない可能性があります。</p>
+
+    <p><strong>解決策:</strong></p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>Chrome または Edge のバージョンが 109 以上であることを確認</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>ブラウザの DevTools で「Elements」タブを開き、<code>&lt;script type="speculationrules"&gt;</code> が出力されているか確認</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>「Speculation Rules を有効にする」と「事前レンダリング」または「事前プリフェッチ」がオンになっているか確認</p>
+        </div>
+    </div>
+
+    <div class="callout callout-note">
+        <p class="callout-title">ノート</p>
+        <p>Firefox や Safari では Speculation Rules API は動作しません。これらのブラウザでは予測プリフェッチ機能をご利用ください。</p>
+    </div>
+
+    <!-- Q3: 計測ダッシュボードにデータが表示されない -->
+    <h3>Q: 計測ダッシュボードにデータが表示されない</h3>
+
+    <p><strong>原因:</strong> 計測機能が有効化されていないか、データがまだ収集されていない可能性があります。</p>
+
+    <p><strong>解決策:</strong></p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>「一般設定」で「計測を有効にする」がオンになっているか確認</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>フロントエンドページにアクセスし、ブラウザの DevTools の Network タブで <code>/wp-json/wpsb/v1/metrics</code> へのリクエストが送信されているか確認</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>レスポンスが <code>200 OK</code> であることを確認（403 の場合は Same-Origin の問題、429 の場合はレート制限）</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">4</span>
+        <div class="step-body">
+            <p>データベースに <code>wp_wpsb_metrics</code> テーブルが存在するか確認</p>
+        </div>
+    </div>
+
+    <div class="callout callout-tip">
+        <p class="callout-title">ヒント</p>
+        <p>計測データが表示されるまで、実際のユーザーのアクセスが必要です。有効化直後は自分でサイトにアクセスしてデータを生成してください。</p>
+    </div>
+
+    <!-- Q4: Smart UX スピナーが表示されない -->
+    <h3>Q: Smart UX スピナーが表示されない</h3>
+
+    <p><strong>原因:</strong> 閾値以内にページが遷移している、または「予測プリフェッチ」が無効になっている可能性があります。</p>
+
+    <p><strong>解決策:</strong></p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>「一般設定」タブで<strong>「予測プリフェッチを有効にする」がオンになっているか確認</strong>してください。Smart UX スピナーの JavaScript は予測プリフェッチと同じスクリプトに同梱されているため、予測プリフェッチが無効だとスピナーも動作しません。</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>閾値を 0ms に一時的に変更してテスト</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>外部サイトへのリンクではスピナーは動作しないことを確認</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">4</span>
+        <div class="step-body">
+            <p>ブラウザの DevTools でスピナー用の CSS (<code>spinner.css</code>) が読み込まれているか確認</p>
+        </div>
+    </div>
+
+    <!-- Q5: 画像に loading="lazy" が二重に付与される -->
+    <h3>Q: 画像に <code>loading="lazy"</code> が二重に付与される</h3>
+
+    <p><strong>原因:</strong> テーマや他のプラグインが既に lazy loading を設定している可能性があります。</p>
+
+    <p><strong>解決策:</strong></p>
+
+    <ul>
+        <li>このプラグインは既に <code>loading</code> 属性が設定されている画像をスキップするため、通常は二重付与されません</li>
+        <li>二重付与が発生する場合は、テーマ側の lazy loading を無効にするか、このプラグインの「遅延読み込み」をオフにしてください</li>
+    </ul>
+
+    <div class="callout callout-note">
+        <p class="callout-title">ノート</p>
+        <p>WordPress 5.5 以降のコア lazy loading とは共存可能です。コアが付与した属性はスキップされます。</p>
+    </div>
+
+    <!-- Q6: 特定のページだけ最適化を無効にしたい -->
+    <h3>Q: 特定のページだけ最適化を無効にしたい</h3>
+
+    <p><strong>解決策:</strong></p>
+
+    <ul>
+        <li>「除外 URL」タブで該当ページのパスを除外パターンに追加</li>
+        <li>glob パターン: <code>/target-page/*</code></li>
+        <li>正規表現: <code>/^\/target-page\/.*/</code></li>
+    </ul>
+
+    <!-- Q7: REST API のトークンエラー (403) が発生する -->
+    <h3>Q: REST API のトークンエラー (403) が発生する</h3>
+
+    <p><strong>原因:</strong> Same-Origin チェックに失敗している可能性があります。</p>
+
+    <p><strong>解決策:</strong></p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-body">
+            <p>サイトの URL 設定（「設定」→「一般」の WordPress アドレスとサイトアドレス）が正しいか確認</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-body">
+            <p>リバースプロキシやCDN経由でアクセスしている場合、Origin ヘッダーが正しく転送されているか確認</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-body">
+            <p>CORS 設定が正しいか確認</p>
+        </div>
+    </div>
+
+    <!-- ============================
+         動作要件
+         ============================ -->
+    <h2 id="requirements">動作要件</h2>
+
+    <table >
+        <thead>
+            <tr>
+                <th>項目</th>
+                <th>要件</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>WordPress</td>
+                <td>6.0 以上</td>
+            </tr>
+            <tr>
+                <td>PHP</td>
+                <td>8.1 以上</td>
+            </tr>
+            <tr>
+                <td>ブラウザ（Speculation Rules）</td>
+                <td>Chrome 109+ / Edge 109+</td>
+            </tr>
+            <tr>
+                <td>ブラウザ（その他の機能）</td>
+                <td>全モダンブラウザ</td>
+            </tr>
+            <tr>
+                <td>JavaScript</td>
+                <td>有効（フロントエンド機能に必要）</td>
+            </tr>
+            <tr>
+                <td>データベース</td>
+                <td>MySQL 5.7+ / MariaDB 10.3+（計測機能に必要）</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ============================
+         技術仕様
+         ============================ -->
+    <h2 id="specifications">技術仕様</h2>
+
+    <ul>
+        <li>プラグインバージョン: 1.0.0</li>
+        <li>テキストドメイン: <code>kashiwazaki-seo-speed-booster</code></li>
+        <li>オプションキー: <code>wpsb_settings</code></li>
+        <li>データベーステーブル: <code>{prefix}_wpsb_metrics</code></li>
+        <li>REST API 名前空間: <code>wpsb/v1</code></li>
+        <li>REST API エンドポイント: <code>/metrics</code> (POST), <code>/token</code> (GET), <code>/dashboard</code> (GET), <code>/purge</code> (POST)</li>
+        <li>HMAC アルゴリズム: SHA-256</li>
+        <li>トークンローテーション: 1時間</li>
+        <li>レート制限: 20リクエスト / 90秒 (IPベース)</li>
+        <li>ペイロード上限: 1KB</li>
+        <li>設定履歴: 最大100件</li>
+        <li>1ページビューあたりの送信数: 最大5件（フロントエンド制限）</li>
+        <li>URL パス正規化: 最大255文字</li>
+        <li>web-vitals.js バージョン: 4.2.4</li>
+        <li>ライセンス: GPL-2.0-or-later</li>
+    </ul>
+
+    <!-- ============================
+         開発者向けフック
+         ============================ -->
+    <h2 id="developer-hooks">開発者向けフック</h2>
+
+    <table >
+        <thead>
+            <tr>
+                <th>フック名</th>
+                <th>種類</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>wpsb_prefetch_enabled</code></td>
+                <td>filter</td>
+                <td>リクエスト単位でプリフェッチを有効/無効</td>
+            </tr>
+            <tr>
+                <td><code>wpsb_exclude_url</code></td>
+                <td>filter</td>
+                <td>URL の除外判定をカスタマイズ</td>
+            </tr>
+            <tr>
+                <td><code>wpsb_normalize_path</code></td>
+                <td>filter</td>
+                <td>メトリクスの URL パス正規化をカスタマイズ</td>
+            </tr>
+            <tr>
+                <td><code>wpsb_metrics_data</code></td>
+                <td>filter</td>
+                <td>メトリクス記録前のデータを加工</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>使用例</h3>
+
+    <h4><code>wpsb_prefetch_enabled</code></h4>
+    <pre><code>// 特定の条件でプリフェッチを無効化
+add_filter( 'wpsb_prefetch_enabled', function( $enabled ) {
+    if ( is_user_logged_in() ) {
+        return false;
+    }
+    return $enabled;
+});</code></pre>
+
+    <h4><code>wpsb_exclude_url</code></h4>
+    <pre><code>// カスタム除外ルール
+add_filter( 'wpsb_exclude_url', function( $excluded, $path, $patterns ) {
+    if ( strpos( $path, '/api/' ) === 0 ) {
+        return true;
+    }
+    return $excluded;
+}, 10, 3 );</code></pre>
+
+    <!-- ============================
+         アーキテクチャ図
+         ============================ -->
+    <h2 id="architecture">アーキテクチャ</h2>
+
+    <figure class="infographic">
+        <img src="images/infographics/architecture.png" alt="プラグインのアーキテクチャ">
+        <figcaption>図: プラグインのアーキテクチャ</figcaption>
+    </figure>
+
+    <!-- Page Navigation -->
+    <nav class="page-nav">
+        <a href="exclusions.html" class="prev">&laquo; 除外 URL パターン</a>
+        <span></span>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="manual-footer">
+        <p>作者: <a href="https://contencial.co.jp/" target="_blank" rel="noopener">Contencial</a></p>
+        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.0</p>
+    </footer>
+
+</main>
+
+<!-- Lightbox -->
+<div class="lightbox"></div>
+
+<script src="js/manual.js"></script>
+</body>
+</html>

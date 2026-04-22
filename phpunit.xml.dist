@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/bootstrap.php" colors="true">
+	<testsuite name="Unit">
+		<file>tests/URLMatcherTest.php</file>
+		<file>tests/MetricsNormalizerTest.php</file>
+		<file>tests/CsvEscapeTest.php</file>
+		<file>tests/P75CalculationTest.php</file>
+		<file>tests/MetricsClassifyTest.php</file>
+	</testsuite>
+</phpunit>
