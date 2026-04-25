@@ -19,7 +19,9 @@ final class WPSB_Admin {
 		add_action( 'admin_menu', [ $this, 'register_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 		add_action( 'admin_post_wpsb_export_csv', [ $this, 'handle_export_csv' ] );
+		add_action( 'admin_post_wpsb_import_csv', [ $this, 'handle_import_csv' ] );
 		add_action( 'admin_post_wpsb_purge', [ $this, 'handle_purge' ] );
+		add_action( 'admin_post_wpsb_truncate', [ $this, 'handle_truncate' ] );
 	}
 
 	public function handle_export_csv(): void {
@@ -95,6 +97,187 @@ final class WPSB_Admin {
 			return "'" . $s;
 		}
 		return $s;
+	}
+
+	public function handle_import_csv(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '権限がありません。', 'kashiwazaki-seo-speed-booster' ), '', [ 'response' => 403 ] );
+		}
+		check_admin_referer( 'wpsb_import_csv' );
+
+		$redirect_url = add_query_arg(
+			[ 'page' => self::MENU_SLUG, 'tab' => 'dashboard' ],
+			admin_url( 'admin.php' )
+		);
+
+		if ( empty( $_FILES['csv_file']['tmp_name'] ) ) {
+			set_transient( 'wpsb_import_notice_' . get_current_user_id(), [ 'error' => __( 'ファイルが選択されていません。', 'kashiwazaki-seo-speed-booster' ) ], 60 );
+			wp_safe_redirect( $redirect_url );
+			exit;
+		}
+
+		$file = $_FILES['csv_file'];
+
+		if ( $file['size'] > 10 * MB_IN_BYTES ) {
+			set_transient( 'wpsb_import_notice_' . get_current_user_id(), [ 'error' => __( 'ファイルサイズが 10MB を超えています。', 'kashiwazaki-seo-speed-booster' ) ], 60 );
+			wp_safe_redirect( $redirect_url );
+			exit;
+		}
+
+		$tmp_path = $file['tmp_name'];
+		$inserted = 0;
+		$skipped  = 0;
+
+		try {
+			$fp = fopen( $tmp_path, 'rb' );
+			if ( ! $fp ) {
+				set_transient( 'wpsb_import_notice_' . get_current_user_id(), [ 'error' => __( 'ファイルを開けませんでした。', 'kashiwazaki-seo-speed-booster' ) ], 60 );
+				wp_safe_redirect( $redirect_url );
+				exit;
+			}
+
+			// BOM 除去
+			$bom = fread( $fp, 3 );
+			if ( $bom !== "\xEF\xBB\xBF" ) {
+				rewind( $fp );
+			}
+
+			// ヘッダ行スキップ
+			$header = fgetcsv( $fp );
+			if ( ! $header ) {
+				fclose( $fp );
+				set_transient( 'wpsb_import_notice_' . get_current_user_id(), [ 'error' => __( 'CSV のヘッダ行を読み取れませんでした。', 'kashiwazaki-seo-speed-booster' ) ], 60 );
+				wp_safe_redirect( $redirect_url );
+				exit;
+			}
+
+			$metrics  = WPSB_Plugin::get_instance()->metrics;
+			$rows_buf = [];
+			$line_num = 0;
+			$max_rows = 50000;
+
+			while ( ( $row = fgetcsv( $fp ) ) !== false ) {
+				++$line_num;
+				if ( $line_num > $max_rows ) {
+					$skipped += 1;
+					continue;
+				}
+
+				if ( count( $row ) < 7 ) {
+					++$skipped;
+					continue;
+				}
+
+				// id(0), metric_name(1), metric_value(2), url_path(3), device_type(4), anonymous_hash(5), created_at(6)
+				$metric_name  = trim( $row[1] );
+				$metric_value = trim( $row[2] );
+				$url_path     = trim( $row[3] );
+				$device_type  = trim( $row[4] );
+				$anon_hash    = trim( $row[5] );
+				$created_at   = trim( $row[6] );
+
+				if ( ! $metrics->is_valid_metric( $metric_name, $metric_value ) ) {
+					++$skipped;
+					continue;
+				}
+				if ( ! in_array( $device_type, [ 'desktop', 'mobile', 'tablet' ], true ) ) {
+					++$skipped;
+					continue;
+				}
+				if ( ! preg_match( '/^[a-f0-9]{32}$/i', $anon_hash ) ) {
+					++$skipped;
+					continue;
+				}
+				$dt = \DateTimeImmutable::createFromFormat( '!Y-m-d H:i:s', $created_at, new \DateTimeZone( 'UTC' ) );
+				if ( ! $dt || $dt->format( 'Y-m-d H:i:s' ) !== $created_at ) {
+					++$skipped;
+					continue;
+				}
+				if ( $url_path === '' || strlen( $url_path ) > 255 ) {
+					++$skipped;
+					continue;
+				}
+
+				$rows_buf[] = [
+					'metric_name'    => $metric_name,
+					'metric_value'   => (float) $metric_value,
+					'url_path'       => $url_path,
+					'device_type'    => $device_type,
+					'anonymous_hash' => $anon_hash,
+					'created_at'     => $created_at,
+				];
+			}
+
+			fclose( $fp );
+
+			if ( ! empty( $rows_buf ) ) {
+				$result   = $metrics->bulk_insert( $rows_buf );
+				$inserted = $result['inserted'];
+				$skipped += $result['skipped'];
+			}
+
+			if ( $inserted > 0 ) {
+				WPSB_Metrics::clear_dashboard_cache();
+			}
+
+			$notice = [
+				'success' => sprintf(
+					/* translators: 1: inserted count, 2: skipped count */
+					__( '%1$d 件インポート / %2$d 件スキップ', 'kashiwazaki-seo-speed-booster' ),
+					$inserted,
+					$skipped
+				),
+			];
+			if ( $line_num > $max_rows ) {
+				$notice['warning'] = sprintf(
+					__( '行数上限 (%d 行) を超えたため、超過分はスキップされました。', 'kashiwazaki-seo-speed-booster' ),
+					$max_rows
+				);
+			}
+			set_transient( 'wpsb_import_notice_' . get_current_user_id(), $notice, 60 );
+
+		} finally {
+			if ( file_exists( $tmp_path ) ) {
+				@unlink( $tmp_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			}
+		}
+
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	public function handle_truncate(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '権限がありません。', 'kashiwazaki-seo-speed-booster' ), '', [ 'response' => 403 ] );
+		}
+		check_admin_referer( 'wpsb_truncate' );
+
+		$confirm = isset( $_POST['confirm'] ) ? sanitize_text_field( wp_unslash( $_POST['confirm'] ) ) : '';
+		if ( $confirm !== '1' ) {
+			wp_safe_redirect( add_query_arg(
+				[ 'page' => self::MENU_SLUG, 'tab' => 'dashboard' ],
+				admin_url( 'admin.php' )
+			) );
+			exit;
+		}
+
+		$metrics = WPSB_Plugin::get_instance()->metrics;
+		$success = $metrics->truncate_all();
+
+		if ( $success ) {
+			WPSB_Metrics::clear_dashboard_cache();
+		}
+
+		$notice = $success
+			? __( '全データを削除しました。', 'kashiwazaki-seo-speed-booster' )
+			: __( 'データの削除に失敗しました。', 'kashiwazaki-seo-speed-booster' );
+		set_transient( 'wpsb_truncate_notice_' . get_current_user_id(), [ 'success' => $success, 'message' => $notice ], 60 );
+
+		wp_safe_redirect( add_query_arg(
+			[ 'page' => self::MENU_SLUG, 'tab' => 'dashboard' ],
+			admin_url( 'admin.php' )
+		) );
+		exit;
 	}
 
 	public function handle_purge(): void {

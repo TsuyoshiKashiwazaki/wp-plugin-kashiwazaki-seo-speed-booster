@@ -185,6 +185,76 @@ final class WPSB_Metrics {
 		return $value <= $max;
 	}
 
+	public function bulk_insert( array $rows ): array {
+		global $wpdb;
+		$table    = $wpdb->prefix . 'wpsb_metrics';
+		$inserted = 0;
+		$skipped  = 0;
+		$batches  = array_chunk( $rows, 1000 );
+
+		foreach ( $batches as $batch ) {
+			$wpdb->query( 'START TRANSACTION' );
+			$batch_ok       = true;
+			$inserted_before = $inserted;
+
+			foreach ( $batch as $row ) {
+				$result = $wpdb->insert(
+					$table,
+					[
+						'metric_name'    => $row['metric_name'],
+						'metric_value'   => (float) $row['metric_value'],
+						'url_path'       => $this->normalize_path( $row['url_path'] ),
+						'device_type'    => $row['device_type'],
+						'anonymous_hash' => $row['anonymous_hash'],
+						'created_at'     => $row['created_at'],
+					],
+					[ '%s', '%f', '%s', '%s', '%s', '%s' ]
+				);
+				if ( false === $result ) {
+					$batch_ok = false;
+					break;
+				}
+				++$inserted;
+			}
+
+			if ( $batch_ok ) {
+				$wpdb->query( 'COMMIT' );
+			} else {
+				$wpdb->query( 'ROLLBACK' );
+				$skipped += count( $batch );
+				$inserted = $inserted_before;
+			}
+		}
+
+		return [ 'inserted' => $inserted, 'skipped' => $skipped ];
+	}
+
+	public function truncate_all(): bool {
+		global $wpdb;
+		$table = $wpdb->prefix . 'wpsb_metrics';
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$result = $wpdb->query( "TRUNCATE TABLE {$table}" );
+		if ( false === $result ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$result = $wpdb->query( "DELETE FROM {$table}" );
+		}
+
+		return $result !== false;
+	}
+
+	public static function clear_dashboard_cache(): void {
+		global $wpdb;
+		$wpdb->query(
+			"DELETE FROM {$wpdb->options}
+			 WHERE option_name LIKE '\_transient\_wpsb\_dash\_%'
+			    OR option_name LIKE '\_transient\_timeout\_wpsb\_dash\_%'"
+		);
+		if ( function_exists( 'wp_cache_flush_group' ) ) {
+			wp_cache_flush_group( 'transient' );
+		}
+	}
+
 	public function auto_purge(): void {
 		$opts = get_option( WPSB_OPTION_KEY, [] );
 		$days = max( 7, (int) ( $opts['metrics_retention_days'] ?? 90 ) );

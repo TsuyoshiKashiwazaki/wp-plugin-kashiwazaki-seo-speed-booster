@@ -15,7 +15,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Speed Booster</h2>
-        <span class="version">v1.0.0</span>
+        <span class="version">v1.0.1</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -38,7 +38,7 @@
 <main class="content">
 
     <h1>計測ダッシュボード</h1>
-    <p class="lead">実ユーザーの Core Web Vitals データを自動収集し、管理画面でグラフやCSVエクスポートで確認できます。</p>
+    <p class="lead">実ユーザーの Core Web Vitals データを自動収集し、管理画面でグラフや CSV エクスポート / インポートで確認・管理できます。</p>
 
     <h3>このページの内容</h3>
     <ul>
@@ -46,6 +46,7 @@
         <li><a href="#dashboard-screen">ダッシュボード画面</a></li>
         <li><a href="#collected-metrics">収集されるメトリクス</a></li>
         <li><a href="#dashboard-features">ダッシュボードの機能</a></li>
+        <li><a href="#empty-state">データがない場合の表示</a></li>
         <li><a href="#data-collection">データ収集の仕組み</a></li>
         <li><a href="#url-normalization">URL パスの正規化</a></li>
         <li><a href="#privacy">プライバシーと Cookie</a></li>
@@ -149,22 +150,33 @@
          ============================ -->
     <h2 id="dashboard-features">ダッシュボードの機能</h2>
 
+    <h3>スタットカード</h3>
+    <ul>
+        <li>LCP / INP / CLS / FCP / TTFB の 5 メトリクスのサマリーをカード形式で表示</li>
+        <li>各カードには現在の値、合格/要改善/不合格のステータスバッジ、フルネーム（Largest Contentful Paint 等）が表示されます</li>
+        <li>カード下部にはバッジ形式で「平均値」と「サンプル数」を表示します</li>
+        <li>データが不足しているメトリクスは「データ不足」と表示されます（最低 5 件必要）</li>
+    </ul>
+
     <h3>期間フィルタ</h3>
     <ul>
-        <li>7日間 / 30日間 / 90日間の3つの期間から選択可能</li>
-        <li>管理画面上のリンクで期間を切り替え（サーバーサイドでデータ取得・描画）</li>
+        <li><strong>短期</strong>: 24時間 / 3日 / 7日 / 30日 / 90日</li>
+        <li><strong>長期</strong>: 半年（180日）/ 1年（365日）</li>
+        <li><strong>カスタム</strong>: 開始日と終了日を自由に指定可能</li>
+        <li>管理画面上のボタンで期間を切り替え（サーバーサイドでデータ取得・描画）</li>
     </ul>
 
     <h3>時系列グラフ</h3>
     <ul>
         <li>日別の平均値を折れ線グラフ（SVG）で表示</li>
-        <li>5つのメトリクス（LCP / INP / CLS / FCP / TTFB）それぞれの推移を確認可能</li>
+        <li>5つのメトリクス（FCP / INP / TTFB / LCP / CLS）それぞれの推移を確認可能</li>
     </ul>
 
-    <h3>LCP 低速 URL TOP 20</h3>
+    <h3>低速 URL TOP 20</h3>
     <ul>
-        <li>LCP の平均値が高い URL パスをランキング表示</li>
-        <li>改善が必要なページの特定に役立ちます</li>
+        <li>各メトリクス（LCP / INP / CLS / FCP / TTFB）の平均値が悪い URL パスをランキング表示</li>
+        <li>タブで表示するメトリクスを切り替え可能</li>
+        <li>URL パス・平均値・サンプル数を一覧で確認でき、改善が必要なページの特定に役立ちます</li>
     </ul>
 
     <h3>CSV エクスポート</h3>
@@ -174,12 +186,33 @@
         <li>CSV インジェクション対策済み（危険な先頭文字のエスケープ）</li>
     </ul>
 
-    <h3>データ削除（パージ）</h3>
+    <h3>CSV インポート</h3>
     <ul>
-        <li>指定日数より古いデータを一括削除（デフォルト: 90日、最小: 1日）</li>
-        <li><code>manage_options</code> 権限とnonce検証が必要</li>
-        <li>設定履歴は最大100件まで自動保持</li>
+        <li>エクスポートした CSV ファイルをインポートしてデータを復元できます</li>
+        <li>上限: 10 MB / 最大 50,000 行</li>
+        <li><code>header</code> が <code>marker</code> の行は自動スキップされます</li>
+        <li>データがない状態でもインポート機能は常に表示されます</li>
     </ul>
+
+    <h3>手動パージ</h3>
+    <ul>
+        <li>DB 圧迫時に古いデータを削除（保持期間: 90日 / 180日 / 365日 から選択）</li>
+        <li><code>manage_options</code> 権限とnonce検証が必要</li>
+    </ul>
+
+    <h3>一括削除</h3>
+    <ul>
+        <li>計測データを全件削除できます</li>
+        <li>この操作は取り消せないため、実行前に確認ダイアログが表示されます</li>
+    </ul>
+
+    <!-- ============================
+         データがない場合の表示
+         ============================ -->
+    <h2 id="empty-state">データがない場合の表示</h2>
+
+    <p>計測データがまだ収集されていない場合、ダッシュボードには「まだ計測データがありません」というメッセージが表示されます。スタットカード・グラフ・低速 URL ランキング・CSV エクスポート・パージ・一括削除はデータが存在するときのみ表示されます。</p>
+    <p><strong>CSV インポート機能はデータの有無にかかわらず常に表示</strong>されるため、別環境からエクスポートしたデータをインポートして復元できます。</p>
 
     <!-- ============================
          データ収集の仕組み
@@ -308,7 +341,7 @@
     <!-- Footer -->
     <footer class="manual-footer">
         <p>作者: <a href="https://contencial.co.jp/" target="_blank" rel="noopener">Contencial</a></p>
-        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.0</p>
+        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.1</p>
     </footer>
 
 </main>

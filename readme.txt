@@ -4,7 +4,7 @@ Tags: performance, core web vitals, speed, prefetch, speculation rules, web vita
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -74,6 +74,12 @@ Kashiwazaki SEO Speed Booster は、商用 CDN を使わずにクライアント
 
 == Changelog ==
 
+= 1.0.1 =
+* ダッシュボード: データ未収集時でも CSV インポート機能を常時表示
+* ダッシュボード: スタットカードのフッターをバッジ表示に改善
+* 除外タブ: プレースホルダーにパターン例を追加
+* ドキュメント: ダッシュボード・除外タブの説明とスクリーンショットを更新
+
 = 1.0.0 =
 * 初版リリース。予測プリフェッチ・Speculation Rules・Smart UX スピナー・画像最適化・Web Vitals 計測ダッシュボード・URL 除外フィルタを実装。
 
@@ -84,6 +90,9 @@ Kashiwazaki SEO Speed Booster は、商用 CDN を使わずにクライアント
 3. 除外 URL パターン
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+ダッシュボード UX 改善、除外タブにプレースホルダー追加。
 
 = 1.0.0 =
 初版。

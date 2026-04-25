@@ -47,7 +47,7 @@ $is_off = empty( $options['exclude_enabled'] );
 
 			<div class="wpsb-field">
 				<div class="wpsb-field__control">
-					<textarea id="exclude_patterns" class="large-text code" rows="8" name="<?php echo esc_attr( WPSB_OPTION_KEY . '[exclude_patterns]' ); ?>"><?php echo esc_textarea( $options['exclude_patterns'] ?? '' ); ?></textarea>
+					<textarea id="exclude_patterns" class="large-text code" rows="8" name="<?php echo esc_attr( WPSB_OPTION_KEY . '[exclude_patterns]' ); ?>" placeholder="/wp-admin/*&#10;/wp-login.php&#10;/xmlrpc.php&#10;/*?logout*&#10;/*?*action=logout*&#10;/wp-json/*&#10;/feed/*&#10;*/cart/*&#10;*/checkout/*&#10;*/my-account/*"><?php echo esc_textarea( $options['exclude_patterns'] ?? '' ); ?></textarea>
 				</div>
 				<p class="wpsb-field__help"><?php esc_html_e( '1 行 1 パターン。glob（* と ?）、または /regex/ 形式。', 'kashiwazaki-seo-speed-booster' ); ?></p>
 				<div class="wpsb-info-box wpsb-info-box--warning">
@@ -69,7 +69,7 @@ $is_off = empty( $options['exclude_enabled'] );
 
 			<div class="wpsb-field">
 				<div class="wpsb-field__control">
-					<textarea id="include_patterns" class="large-text code" rows="5" name="<?php echo esc_attr( WPSB_OPTION_KEY . '[include_patterns]' ); ?>"><?php echo esc_textarea( $options['include_patterns'] ?? '' ); ?></textarea>
+					<textarea id="include_patterns" class="large-text code" rows="5" name="<?php echo esc_attr( WPSB_OPTION_KEY . '[include_patterns]' ); ?>" placeholder="/&#10;/blog/*&#10;/news/*&#10;/products/*&#10;/services/*"><?php echo esc_textarea( $options['include_patterns'] ?? '' ); ?></textarea>
 				</div>
 				<p class="wpsb-field__help"><?php esc_html_e( '設定すると、ここに一致する URL のみプリフェッチされます（ホワイトリストモード）。通常は空のままで OK。', 'kashiwazaki-seo-speed-booster' ); ?></p>
 			</div>

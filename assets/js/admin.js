@@ -94,6 +94,23 @@
 		});
 	}
 
+	// ── Ranking Tab Switching ──
+	var rankingTabs = document.querySelectorAll('.wpsb-ranking-tab');
+	for (var t = 0; t < rankingTabs.length; t++) {
+		rankingTabs[t].addEventListener('click', function () {
+			var metric = this.getAttribute('data-metric');
+			var container = this.closest('.wpsb-settings-card');
+			var tabs = container.querySelectorAll('.wpsb-ranking-tab');
+			var panels = container.querySelectorAll('.wpsb-ranking-panel');
+			for (var j = 0; j < tabs.length; j++) {
+				tabs[j].classList.toggle('is-active', tabs[j] === this);
+			}
+			for (var k = 0; k < panels.length; k++) {
+				panels[k].classList.toggle('is-active', panels[k].getAttribute('data-metric') === metric);
+			}
+		});
+	}
+
 	// ── Chart.js Dashboard Charts ──
 	if (typeof Chart !== 'undefined' && typeof wpsbChartData !== 'undefined') {
 		var chartMetrics = wpsbChartData.metrics;

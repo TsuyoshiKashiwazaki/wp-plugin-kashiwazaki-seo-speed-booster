@@ -743,12 +743,23 @@
 
 .wpsb-stat-card__footer {
 	display: flex;
-	gap: 12px;
-	font-size: 11px;
-	color: #8c8f94;
-	border-top: 1px solid #f0f0f1;
-	padding-top: 10px;
-	margin-top: 16px;
+	gap: 5px;
+	flex-wrap: wrap;
+	margin-top: 10px;
+}
+
+.wpsb-stat-badge {
+	display: inline-block;
+	font-size: 10px;
+	font-weight: 500;
+	line-height: 1;
+	padding: 4px 8px;
+	border-radius: 9999px;
+	background: #dcdde1;
+	color: #3c434a;
+	cursor: default;
+	white-space: nowrap;
+	letter-spacing: 0.02em;
 }
 
 /* ── Meter Bar ── */
@@ -916,6 +927,53 @@
 .wpsb-stat-card--insufficient,
 .wpsb-stat-card--unknown {
 	border-top-color: #c3c4c7;
+}
+
+/* ── Ranking Tabs ── */
+
+.wpsb-ranking-tabs {
+	display: flex;
+	gap: 4px;
+	border-bottom: 2px solid #e2e4e7;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.wpsb-ranking-tab {
+	padding: 8px 18px;
+	border: none;
+	background: transparent;
+	font-size: 13px;
+	font-weight: 600;
+	color: #50575e;
+	cursor: pointer;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -2px;
+	transition: color .15s, border-color .15s;
+}
+
+.wpsb-ranking-tab:hover {
+	color: #2271b1;
+}
+
+.wpsb-ranking-tab.is-active {
+	color: #1d2327;
+	border-bottom-color: #2271b1;
+}
+
+.wpsb-ranking-panel {
+	display: none;
+	padding-top: 20px;
+}
+
+.wpsb-ranking-panel.is-active {
+	display: block;
+}
+
+/* ── Import / Truncate Forms ── */
+
+.wpsb-import-form {
+	margin-top: 12px;
 }
 
 .wpsb-purge-form {

@@ -3,7 +3,7 @@
  * Plugin Name: Kashiwazaki SEO Speed Booster
  * Plugin URI:  https://contencial.co.jp/
  * Description: Core Web Vitals (LCP / INP / CLS / FCP / TTFB) 改善のための軽量プラグイン。予測プリフェッチ・Speculation Rules・Smart UX スピナー・計測ダッシュボードを提供。
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Contencial
  * Author URI:  https://contencial.co.jp/
  * License:     GPL-2.0-or-later
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WPSB_VERSION', '1.0.0' );
+define( 'WPSB_VERSION', '1.0.1' );
 define( 'WPSB_PLUGIN_FILE', __FILE__ );
 define( 'WPSB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPSB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

@@ -17,6 +17,35 @@ if ( false !== $purge_notice ) :
 	</div>
 <?php endif;
 
+// --- インポート通知 ---
+$import_notice = get_transient( 'wpsb_import_notice_' . get_current_user_id() );
+if ( false !== $import_notice && is_array( $import_notice ) ) :
+	delete_transient( 'wpsb_import_notice_' . get_current_user_id() );
+	if ( ! empty( $import_notice['error'] ) ) : ?>
+		<div class="notice notice-error is-dismissible">
+			<p><?php echo esc_html( $import_notice['error'] ); ?></p>
+		</div>
+	<?php else : ?>
+		<div class="notice notice-success is-dismissible">
+			<p><?php echo esc_html( $import_notice['success'] ?? '' ); ?></p>
+			<?php if ( ! empty( $import_notice['warning'] ) ) : ?>
+				<p><strong><?php echo esc_html( $import_notice['warning'] ); ?></strong></p>
+			<?php endif; ?>
+		</div>
+	<?php endif;
+endif;
+
+// --- トランケート通知 ---
+$truncate_notice = get_transient( 'wpsb_truncate_notice_' . get_current_user_id() );
+if ( false !== $truncate_notice && is_array( $truncate_notice ) ) :
+	delete_transient( 'wpsb_truncate_notice_' . get_current_user_id() );
+	$notice_class = ! empty( $truncate_notice['success'] ) ? 'notice-success' : 'notice-error';
+	?>
+	<div class="notice <?php echo esc_attr( $notice_class ); ?> is-dismissible">
+		<p><?php echo esc_html( $truncate_notice['message'] ?? '' ); ?></p>
+	</div>
+<?php endif;
+
 global $wpdb;
 $table = $wpdb->prefix . 'wpsb_metrics';
 
@@ -52,10 +81,10 @@ if ( $use_cache ) {
 	$cached = get_transient( $cache_key );
 }
 
-if ( false !== $cached && is_array( $cached ) ) {
+if ( false !== $cached && is_array( $cached ) && isset( $cached['rankings'] ) ) {
 	$summary_rows = $cached['summary'];
 	$time_rows    = $cached['series'];
-	$url_ranking  = $cached['urls'];
+	$url_rankings = $cached['rankings'];
 } else {
 	$summary_rows = $wpdb->get_results(
 		"SELECT metric_name, COUNT(*) AS samples,
@@ -111,22 +140,25 @@ if ( false !== $cached && is_array( $cached ) ) {
 		ARRAY_A
 	);
 
-	$url_ranking = $wpdb->get_results(
-		"SELECT url_path, AVG(metric_value) AS avg_v, COUNT(*) AS samples
-		 FROM {$table}
-		 WHERE {$where_time} AND metric_name = 'LCP'
-		 GROUP BY url_path
-		 HAVING samples >= 3
-		 ORDER BY avg_v DESC
-		 LIMIT 20", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		ARRAY_A
-	);
+	$url_rankings = [];
+	foreach ( WPSB_Metrics::ALLOWED_METRICS as $m ) {
+		$url_rankings[ $m ] = $wpdb->get_results( $wpdb->prepare(
+			"SELECT url_path, AVG(metric_value) AS avg_v, COUNT(*) AS samples
+			 FROM {$table}
+			 WHERE {$where_time} AND metric_name = %s
+			 GROUP BY url_path
+			 HAVING samples >= 3
+			 ORDER BY avg_v DESC
+			 LIMIT 20", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$m
+		), ARRAY_A );
+	}
 
 	if ( $use_cache ) {
 		set_transient( $cache_key, [
-			'summary' => $summary_rows,
-			'series'  => $time_rows,
-			'urls'    => $url_ranking,
+			'summary'  => $summary_rows,
+			'series'   => $time_rows,
+			'rankings' => $url_rankings,
 		], HOUR_IN_SECONDS );
 	}
 }
@@ -223,7 +255,9 @@ if ( empty( $summary_rows ) ) :
 			<?php endif; ?>
 		</p>
 	</div>
-<?php else : ?>
+<?php endif; ?>
+
+<?php if ( ! empty( $summary_rows ) ) : ?>
 
 	<?php
 	$rating_labels = [
@@ -295,9 +329,8 @@ if ( empty( $summary_rows ) ) :
 					</div>
 				<?php endif; ?>
 				<div class="wpsb-stat-card__footer">
-					<span>p75</span>
-					<span><?php printf( esc_html__( '平均: %s', 'kashiwazaki-seo-speed-booster' ), esc_html( $fmt_avg . $unit ) ); ?></span>
-					<span><?php printf( esc_html__( 'n=%d', 'kashiwazaki-seo-speed-booster' ), $samples ); ?></span>
+					<span class="wpsb-stat-badge" title="<?php esc_attr_e( '全サンプルの平均値', 'kashiwazaki-seo-speed-booster' ); ?>"><?php printf( esc_html__( '平均 %s', 'kashiwazaki-seo-speed-booster' ), esc_html( $fmt_avg . $unit ) ); ?></span>
+					<span class="wpsb-stat-badge" title="<?php esc_attr_e( 'サンプル数', 'kashiwazaki-seo-speed-booster' ); ?>"><?php printf( esc_html( '%d 件' ), $samples ); ?></span>
 				</div>
 			</div>
 		<?php endforeach; ?>
@@ -400,61 +433,130 @@ if ( empty( $summary_rows ) ) :
 
 	<hr class="wpsb-section-divider" />
 
+	<?php
+	$ranking_titles = [
+		'LCP'  => __( 'LCP が遅い URL TOP 20', 'kashiwazaki-seo-speed-booster' ),
+		'INP'  => __( 'INP が遅い URL TOP 20', 'kashiwazaki-seo-speed-booster' ),
+		'CLS'  => __( 'CLS が大きい URL TOP 20', 'kashiwazaki-seo-speed-booster' ),
+		'FCP'  => __( 'FCP が遅い URL TOP 20', 'kashiwazaki-seo-speed-booster' ),
+		'TTFB' => __( 'TTFB が遅い URL TOP 20', 'kashiwazaki-seo-speed-booster' ),
+	];
+	$ranking_col_labels = [
+		'LCP'  => __( '平均 LCP (ms)', 'kashiwazaki-seo-speed-booster' ),
+		'INP'  => __( '平均 INP (ms)', 'kashiwazaki-seo-speed-booster' ),
+		'CLS'  => __( '平均 CLS', 'kashiwazaki-seo-speed-booster' ),
+		'FCP'  => __( '平均 FCP (ms)', 'kashiwazaki-seo-speed-booster' ),
+		'TTFB' => __( '平均 TTFB (ms)', 'kashiwazaki-seo-speed-booster' ),
+	];
+	?>
 	<div class="wpsb-settings-card">
-		<h4 class="wpsb-settings-card__title"><?php esc_html_e( 'LCP が遅い URL TOP 20', 'kashiwazaki-seo-speed-booster' ); ?></h4>
-		<?php if ( ! empty( $url_ranking ) ) : ?>
-			<table class="wpsb-url-ranking widefat">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'URL', 'kashiwazaki-seo-speed-booster' ); ?></th>
-						<th><?php esc_html_e( '平均 LCP (ms)', 'kashiwazaki-seo-speed-booster' ); ?></th>
-						<th><?php esc_html_e( 'サンプル数', 'kashiwazaki-seo-speed-booster' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $url_ranking as $row ) : ?>
-						<tr>
-							<td><code><?php echo esc_html( $row['url_path'] ); ?></code></td>
-							<td><?php echo esc_html( number_format( (float) $row['avg_v'], 1 ) ); ?></td>
-							<td><?php echo esc_html( (int) $row['samples'] ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		<?php else : ?>
-			<p><?php esc_html_e( 'LCP データが 3 件以上ある URL がまだありません。', 'kashiwazaki-seo-speed-booster' ); ?></p>
-		<?php endif; ?>
+		<div class="wpsb-ranking-tabs">
+			<?php foreach ( WPSB_Metrics::ALLOWED_METRICS as $i => $m ) : ?>
+				<button type="button"
+					class="wpsb-ranking-tab<?php echo $i === 0 ? ' is-active' : ''; ?>"
+					data-metric="<?php echo esc_attr( strtolower( $m ) ); ?>"
+				><?php echo esc_html( $m ); ?></button>
+			<?php endforeach; ?>
+		</div>
+
+		<?php foreach ( WPSB_Metrics::ALLOWED_METRICS as $i => $m ) :
+			$ranking_data = $url_rankings[ $m ] ?? [];
+			$is_cls       = $m === 'CLS';
+		?>
+			<div class="wpsb-ranking-panel<?php echo $i === 0 ? ' is-active' : ''; ?>" data-metric="<?php echo esc_attr( strtolower( $m ) ); ?>">
+				<h4 class="wpsb-settings-card__title"><?php echo esc_html( $ranking_titles[ $m ] ); ?></h4>
+				<?php if ( ! empty( $ranking_data ) ) : ?>
+					<table class="wpsb-url-ranking widefat">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'URL', 'kashiwazaki-seo-speed-booster' ); ?></th>
+								<th><?php echo esc_html( $ranking_col_labels[ $m ] ); ?></th>
+								<th><?php esc_html_e( 'サンプル数', 'kashiwazaki-seo-speed-booster' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $ranking_data as $row ) : ?>
+								<tr>
+									<td><code><?php echo esc_html( $row['url_path'] ); ?></code></td>
+									<td><?php echo esc_html( number_format( (float) $row['avg_v'], $is_cls ? 3 : 1 ) ); ?></td>
+									<td><?php echo esc_html( (int) $row['samples'] ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php else : ?>
+					<p><?php printf( esc_html__( '%s データが 3 件以上ある URL がまだありません。', 'kashiwazaki-seo-speed-booster' ), esc_html( $m ) ); ?></p>
+				<?php endif; ?>
+			</div>
+		<?php endforeach; ?>
 	</div>
 
+	<?php
+	$csv_args = [ 'action' => 'wpsb_export_csv', 'period' => $period, '_wpnonce' => wp_create_nonce( 'wpsb_export_csv' ) ];
+	if ( $period === 'custom' && $parsed['from_date'] ) {
+		$csv_args['from'] = $parsed['from_date'];
+		$csv_args['to']   = $parsed['to_date'];
+	}
+	$csv_url = add_query_arg( $csv_args, admin_url( 'admin-post.php' ) );
+	?>
 	<div class="wpsb-settings-card">
 		<h4 class="wpsb-settings-card__title"><?php esc_html_e( 'CSV エクスポート', 'kashiwazaki-seo-speed-booster' ); ?></h4>
 		<p>
-			<?php
-			$csv_args = [ 'action' => 'wpsb_export_csv', 'period' => $period, '_wpnonce' => wp_create_nonce( 'wpsb_export_csv' ) ];
-			if ( $period === 'custom' && $parsed['from_date'] ) {
-				$csv_args['from'] = $parsed['from_date'];
-				$csv_args['to']   = $parsed['to_date'];
-			}
-			$csv_url = add_query_arg( $csv_args, admin_url( 'admin-post.php' ) );
-			?>
 			<a href="<?php echo esc_url( $csv_url ); ?>" class="button"><?php esc_html_e( '現在の期間を CSV でダウンロード', 'kashiwazaki-seo-speed-booster' ); ?></a>
 		</p>
 	</div>
 
-	<div class="wpsb-settings-card">
-		<h4 class="wpsb-settings-card__title"><?php esc_html_e( '手動パージ', 'kashiwazaki-seo-speed-booster' ); ?></h4>
-		<p class="wpsb-field__help" style="margin-top:0;"><?php esc_html_e( 'DB 圧迫時に古いデータを削除します。', 'kashiwazaki-seo-speed-booster' ); ?></p>
-		<form id="wpsb-purge-form" class="wpsb-purge-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-confirm="<?php echo esc_attr( __( '本当に削除しますか?', 'kashiwazaki-seo-speed-booster' ) ); ?>">
-			<?php wp_nonce_field( 'wpsb_purge' ); ?>
-			<input type="hidden" name="action" value="wpsb_purge" />
-			<label><?php esc_html_e( '保持期間:', 'kashiwazaki-seo-speed-booster' ); ?>
-				<select name="days">
-					<option value="90">90 <?php esc_html_e( '日', 'kashiwazaki-seo-speed-booster' ); ?></option>
-					<option value="180">180 <?php esc_html_e( '日', 'kashiwazaki-seo-speed-booster' ); ?></option>
-					<option value="365">365 <?php esc_html_e( '日', 'kashiwazaki-seo-speed-booster' ); ?></option>
-				</select>
-			</label>
-			<button type="submit" class="button button-secondary"><?php esc_html_e( '指定日数より古いデータを削除', 'kashiwazaki-seo-speed-booster' ); ?></button>
-		</form>
-	</div>
+<?php endif; ?>
+
+<div class="wpsb-settings-card">
+	<h4 class="wpsb-settings-card__title"><?php esc_html_e( 'CSV インポート', 'kashiwazaki-seo-speed-booster' ); ?></h4>
+	<p class="wpsb-field__help" style="margin-top:0;">
+		<?php esc_html_e( 'エクスポートした CSV ファイルをインポートしてデータを復元します。重複チェックは行われないため、既存データがある場合は先に「一括削除」で全件削除してからインポートすることを推奨します。', 'kashiwazaki-seo-speed-booster' ); ?>
+	</p>
+	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data" class="wpsb-import-form">
+		<?php wp_nonce_field( 'wpsb_import_csv' ); ?>
+		<input type="hidden" name="action" value="wpsb_import_csv" />
+		<p>
+			<input type="file" name="csv_file" accept=".csv,text/csv" required />
+		</p>
+		<p>
+			<button type="submit" class="button button-secondary"><?php esc_html_e( 'CSV をインポート', 'kashiwazaki-seo-speed-booster' ); ?></button>
+		</p>
+		<p class="wpsb-field__help"><?php esc_html_e( '上限: 10 MB / 50,000 行。created_at は UTC として扱われます。', 'kashiwazaki-seo-speed-booster' ); ?></p>
+	</form>
+</div>
+
+<?php if ( ! empty( $summary_rows ) ) : ?>
+
+<div class="wpsb-settings-card">
+	<h4 class="wpsb-settings-card__title"><?php esc_html_e( '手動パージ', 'kashiwazaki-seo-speed-booster' ); ?></h4>
+	<p class="wpsb-field__help" style="margin-top:0;"><?php esc_html_e( 'DB 圧迫時に古いデータを削除します。', 'kashiwazaki-seo-speed-booster' ); ?></p>
+	<form id="wpsb-purge-form" class="wpsb-purge-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-confirm="<?php echo esc_attr( __( '本当に削除しますか?', 'kashiwazaki-seo-speed-booster' ) ); ?>">
+		<?php wp_nonce_field( 'wpsb_purge' ); ?>
+		<input type="hidden" name="action" value="wpsb_purge" />
+		<label><?php esc_html_e( '保持期間:', 'kashiwazaki-seo-speed-booster' ); ?>
+			<select name="days">
+				<option value="90">90 <?php esc_html_e( '日', 'kashiwazaki-seo-speed-booster' ); ?></option>
+				<option value="180">180 <?php esc_html_e( '日', 'kashiwazaki-seo-speed-booster' ); ?></option>
+				<option value="365">365 <?php esc_html_e( '日', 'kashiwazaki-seo-speed-booster' ); ?></option>
+			</select>
+		</label>
+		<button type="submit" class="button button-secondary"><?php esc_html_e( '指定日数より古いデータを削除', 'kashiwazaki-seo-speed-booster' ); ?></button>
+	</form>
+</div>
+
+<div class="wpsb-settings-card">
+	<h4 class="wpsb-settings-card__title"><?php esc_html_e( '一括削除', 'kashiwazaki-seo-speed-booster' ); ?></h4>
+	<p class="wpsb-field__help" style="margin-top:0;">
+		<?php esc_html_e( '計測データを全件削除します。この操作は取り消せません。', 'kashiwazaki-seo-speed-booster' ); ?>
+	</p>
+	<form id="wpsb-truncate-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<?php wp_nonce_field( 'wpsb_truncate' ); ?>
+		<input type="hidden" name="action" value="wpsb_truncate" />
+		<button type="submit" class="button button-link-delete"
+			onclick="if(!confirm('<?php echo esc_js( __( '本当にすべてのデータを削除しますか？この操作は取り消せません。', 'kashiwazaki-seo-speed-booster' ) ); ?>')){event.preventDefault();return;}var h=document.createElement('input');h.type='hidden';h.name='confirm';h.value='1';this.form.appendChild(h);"
+		><?php esc_html_e( '全データを削除', 'kashiwazaki-seo-speed-booster' ); ?></button>
+	</form>
+</div>
+
 <?php endif; ?>

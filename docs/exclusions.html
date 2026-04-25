@@ -15,7 +15,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <h2 style="color:#fff;">Speed Booster</h2>
-        <span class="version">v1.0.0</span>
+        <span class="version">v1.0.1</span>
         <img src="images/main-visual.png" alt="" style="width:100%;border-radius:4px;margin-top:8px;">
     </div>
     <ul>
@@ -44,7 +44,7 @@
     <!-- 除外パターンの概要 -->
     <h2>除外パターンの概要</h2>
 
-    <p>除外URLパターンでは、予測プリフェッチや Speculation Rules の対象から特定のページを除外できます。1行に1パターンずつ記述し、glob パターンと正規表現の両方に対応しています。</p>
+    <p>除外URLパターンでは、予測プリフェッチや Speculation Rules の対象から特定のページを除外できます。1行に1パターンずつ記述し、glob パターンと正規表現の両方に対応しています。テキストエリアにはよく使うパターンのプレースホルダーが表示されるため、初めてでも迷わず設定できます。</p>
 
     <!-- よく使う除外パターン例 -->
     <h3>よく使う除外パターン例</h3>
@@ -229,11 +229,11 @@
         <li><code>wpsb_exclude_patterns</code> / <code>wpsb_include_patterns</code> フィルタでパターン配列をカスタマイズ可能</li>
     </ul>
 
-    <h3>許可パターン（Include Patterns）</h3>
+    <h3>許可パターン（Include Patterns / ホワイトリスト）</h3>
 
     <ul>
         <li>設定すると、マッチするURLのみを<strong>予測プリフェッチ</strong>の対象にします（ホワイトリストモード）</li>
-        <li>空の場合はすべてのURLが対象（デフォルト）</li>
+        <li>空の場合はすべてのURLが対象（デフォルト）。プレースホルダーに <code>/</code>、<code>/blog/*</code>、<code>/products/*</code> 等の例が表示されます</li>
         <li>除外パターンと併用可能（許可パターンにマッチしても除外パターンにマッチすれば除外）</li>
         <li><strong>Speculation Rules</strong>: glob パターンは <code>href_matches</code> の対象範囲として反映されます。正規表現のみの場合は Speculation Rules の出力が停止します</li>
         <li>Smart UX スピナー・画像最適化・計測には影響しません</li>
@@ -266,7 +266,7 @@
     <!-- Footer -->
     <footer class="manual-footer">
         <p>作者: <a href="https://contencial.co.jp/" target="_blank" rel="noopener">Contencial</a></p>
-        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.0</p>
+        <p>プラグイン: Kashiwazaki SEO Speed Booster v1.0.1</p>
     </footer>
 
 </main>
